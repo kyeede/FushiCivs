@@ -77,13 +77,4 @@ public interface IGuildRepository
     /// <param name="cancellationToken">Cancelled when the caller stops waiting.</param>
     /// <returns>The guilds a cycle could be opened for.</returns>
     Task<IReadOnlyList<Guild>> ListOperationalAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Stages a new guild for insertion.
-    /// </summary>
-    /// <param name="guild">The guild to add.</param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="guild"/> is <see langword="null"/>.
-    /// </exception>
-    void Add(Guild guild);
 }

@@ -10,14 +10,6 @@ namespace Fushi.Application.Abstractions.Persistence.Repositories;
 public interface ISubmissionRepository
 {
     /// <summary>
-    /// Finds a submission by its internal identifier.
-    /// </summary>
-    /// <param name="id">The submission identifier.</param>
-    /// <param name="cancellationToken">Cancelled when the caller stops waiting.</param>
-    /// <returns>The submission, or <see langword="null"/> when it does not exist.</returns>
-    Task<Submission?> FindAsync(Guid id, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Finds a submission by the code a user typed.
     /// </summary>
     /// <param name="guildId">The guild the request came from.</param>
@@ -63,18 +55,6 @@ public interface ISubmissionRepository
     Task<bool> ExistsForMessageAsync(
         ulong guildId,
         ulong sourceMessageId,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Determines whether a code is already in use in a guild.
-    /// </summary>
-    /// <param name="guildId">The guild to look in.</param>
-    /// <param name="code">The code to test.</param>
-    /// <param name="cancellationToken">Cancelled when the caller stops waiting.</param>
-    /// <returns><see langword="true"/> when the code is taken.</returns>
-    Task<bool> CodeExistsAsync(
-        ulong guildId,
-        ShortCode code,
         CancellationToken cancellationToken = default);
 
     /// <summary>

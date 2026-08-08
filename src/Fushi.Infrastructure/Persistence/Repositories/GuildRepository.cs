@@ -60,12 +60,4 @@ internal sealed class GuildRepository(FushiDbContext context) : IGuildRepository
                 && guild.Channels.IntakeChannelId != null
                 && guild.Channels.ReviewChannelId != null)
             .ToListAsync(cancellationToken);
-
-    /// <inheritdoc/>
-    public void Add(Guild guild)
-    {
-        ArgumentNullException.ThrowIfNull(guild);
-
-        context.Guilds.Add(guild);
-    }
 }

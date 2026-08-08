@@ -19,11 +19,6 @@ internal sealed class SubmissionRepository(FushiDbContext context) : ISubmission
     private const int AUTOCOMPLETE_CEILING = 25;
 
     /// <inheritdoc/>
-    public Task<Submission?> FindAsync(Guid id, CancellationToken cancellationToken = default)
-        => context.Submissions
-            .FirstOrDefaultAsync(submission => submission.Id == id, cancellationToken);
-
-    /// <inheritdoc/>
     public Task<Submission?> FindByCodeAsync(
         ulong guildId,
         ShortCode code,
@@ -53,20 +48,6 @@ internal sealed class SubmissionRepository(FushiDbContext context) : ISubmission
             .AnyAsync(
                 submission => submission.GuildId == guildId
                     && submission.SourceMessageId == sourceMessageId,
-                cancellationToken);
-
-    /// <inheritdoc/>
-    public Task<bool> CodeExistsAsync(
-        ulong guildId,
-        ShortCode code,
-        CancellationToken cancellationToken = default)
-        // Deliberately ignores the soft-delete filter. A withdrawn submission keeps
-        // its code, and handing the same code to a new one would make the audit trail
-        // ambiguous about which submission an entry refers to.
-        => context.Submissions
-            .IgnoreQueryFilters()
-            .AnyAsync(
-                submission => submission.GuildId == guildId && submission.Code == code,
                 cancellationToken);
 
     /// <inheritdoc/>
