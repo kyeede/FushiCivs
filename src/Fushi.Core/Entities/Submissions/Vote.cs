@@ -16,7 +16,7 @@ namespace Fushi.Core.Entities.Submissions;
 /// Votes are soft-deleted rather than removed, because a submission's outcome
 /// has to remain explainable after a voter's access is revoked.
 /// </remarks>
-public sealed class Vote : AuditableEntity<Guid>
+public sealed class Vote : AuditableEntity<Guid>, IMentionable
 {
     /// <summary>
     /// The longest comment a voter may attach, sized to fit inside a Discord
@@ -106,9 +106,7 @@ public sealed class Vote : AuditableEntity<Guid>
     /// </remarks>
     public int RevisionCount { get; private set; }
 
-    /// <summary>
-    /// Gets a Discord mention for the voter.
-    /// </summary>
+    /// <inheritdoc/>
     public string Mention => MentionUtility.User(VoterId);
 
     /// <summary>

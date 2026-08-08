@@ -20,7 +20,7 @@ namespace Fushi.Core.Entities.Audits;
 /// </remarks>
 /// <seealso cref="AuditScope"/>
 /// <seealso cref="AuditAction"/>
-public sealed class AuditEntry : Entity<Guid>
+public sealed class AuditEntry : Entity<Guid>, ICreatable
 {
     /// <summary>
     /// The longest reason accepted.
@@ -119,18 +119,10 @@ public sealed class AuditEntry : Entity<Guid>
     /// </summary>
     public AuditAction Action { get; private set; }
 
-    /// <summary>
-    /// Gets the instant the entry was created, in UTC.
-    /// </summary>
+    /// <inheritdoc/>
     public DateTimeOffset CreatedAt { get; private set; }
 
-    /// <summary>
-    /// Gets the Discord user snowflake of the actor that created the entry.
-    /// </summary>
-    /// <value>
-    /// The acting user's snowflake, or <c>0</c> when the bot recorded the entry
-    /// on its own initiative.
-    /// </value>
+    /// <inheritdoc/>
     public ulong CreatedBy { get; private set; }
 
     /// <summary>

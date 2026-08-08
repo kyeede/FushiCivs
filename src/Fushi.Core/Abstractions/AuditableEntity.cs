@@ -15,7 +15,7 @@ namespace Fushi.Core.Abstractions;
 /// drive the timeline deterministically through its own time provider.
 /// </remarks>
 /// <typeparam name="TId">The identifier type.</typeparam>
-public abstract class AuditableEntity<TId> : Entity<TId>
+public abstract class AuditableEntity<TId> : Entity<TId>, ICreatable, IUpdatable, IDeletable
     where TId : struct, IEquatable<TId>
 {
     /// <summary>
@@ -41,58 +41,25 @@ public abstract class AuditableEntity<TId> : Entity<TId>
     /// <inheritdoc cref="Entity{TId}()"/>
     protected AuditableEntity() { }
 
-    /// <summary>
-    /// Gets the instant the entity was created, in UTC.
-    /// </summary>
+    /// <inheritdoc/>
     public DateTimeOffset CreatedAt { get; private set; }
 
-    /// <summary>
-    /// Gets the Discord user snowflake of the actor that created the entity.
-    /// </summary>
-    /// <value>
-    /// The acting user's snowflake, or <c>0</c> when the entity originated from
-    /// the bot itself rather than from a human action.
-    /// </value>
+    /// <inheritdoc/>
     public ulong CreatedBy { get; private set; }
 
-    /// <summary>
-    /// Gets the instant of the most recent modification, in UTC.
-    /// </summary>
-    /// <value>
-    /// <see langword="null"/> when the entity has never been modified since
-    /// creation.
-    /// </value>
+    /// <inheritdoc/>
     public DateTimeOffset? UpdatedAt { get; private set; }
 
-    /// <summary>
-    /// Gets the Discord user snowflake of the actor behind the most recent
-    /// modification.
-    /// </summary>
-    /// <value>
-    /// <see langword="null"/> when the entity has never been modified since
-    /// creation.
-    /// </value>
+    /// <inheritdoc/>
     public ulong? UpdatedBy { get; private set; }
 
-    /// <summary>
-    /// Gets the instant the entity was deleted, in UTC.
-    /// </summary>
-    /// <value>
-    /// <see langword="null"/> while the entity is live.
-    /// </value>
+    /// <inheritdoc/>
     public DateTimeOffset? DeletedAt { get; private set; }
 
-    /// <summary>
-    /// Gets the Discord user snowflake of the actor that deleted the entity.
-    /// </summary>
-    /// <value>
-    /// <see langword="null"/> while the entity is live.
-    /// </value>
+    /// <inheritdoc/>
     public ulong? DeletedBy { get; private set; }
 
-    /// <summary>
-    /// Gets a value indicating whether the entity has been soft-deleted.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsDeleted => DeletedAt.HasValue;
 
     /// <summary>
@@ -103,7 +70,7 @@ public abstract class AuditableEntity<TId> : Entity<TId>
     /// The Discord user snowflake of the modifying actor.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="updatedAt"/> precedes <see cref="CreatedAt"/>.
+    /// <paramref name="updatedAt"/> precedes <see cref="ICreatable.CreatedAt"/>.
     /// </exception>
     public void MarkUpdated(DateTimeOffset updatedAt, ulong updatedBy)
     {
@@ -133,7 +100,7 @@ public abstract class AuditableEntity<TId> : Entity<TId>
     /// The Discord user snowflake of the deleting actor.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="deletedAt"/> precedes <see cref="CreatedAt"/>.
+    /// <paramref name="deletedAt"/> precedes <see cref="ICreatable.CreatedAt"/>.
     /// </exception>
     public void MarkDeleted(DateTimeOffset deletedAt, ulong deletedBy)
     {
@@ -164,7 +131,7 @@ public abstract class AuditableEntity<TId> : Entity<TId>
     /// The Discord user snowflake of the restoring actor.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="restoredAt"/> precedes <see cref="CreatedAt"/>.
+    /// <paramref name="restoredAt"/> precedes <see cref="ICreatable.CreatedAt"/>.
     /// </exception>
     public void MarkRestored(DateTimeOffset restoredAt, ulong restoredBy)
     {

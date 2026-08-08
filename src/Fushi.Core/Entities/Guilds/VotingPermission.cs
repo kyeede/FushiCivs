@@ -17,7 +17,7 @@ namespace Fushi.Core.Entities.Guilds;
 /// nobody can reason about. Revoking is done by removing the grant.
 /// </remarks>
 /// <seealso cref="VotingPermissionScope"/>
-public sealed class VotingPermission : AuditableEntity<Guid>
+public sealed class VotingPermission : AuditableEntity<Guid>, IMentionable
 {
     /// <summary>
     /// Initialises a grant.
@@ -91,9 +91,7 @@ public sealed class VotingPermission : AuditableEntity<Guid>
     /// </value>
     public string? Note { get; private set; }
 
-    /// <summary>
-    /// Gets a Discord mention for the grant target.
-    /// </summary>
+    /// <inheritdoc/>
     /// <remarks>
     /// Renders with the sigil matching <see cref="Scope"/>, so a grant list can
     /// be printed without the caller having to branch on the scope itself.

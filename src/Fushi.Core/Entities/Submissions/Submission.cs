@@ -22,7 +22,7 @@ namespace Fushi.Core.Entities.Submissions;
 /// </remarks>
 /// <seealso cref="SubmissionStatus"/>
 /// <seealso cref="SubmissionOutcome"/>
-public sealed class Submission : AuditableEntity<Guid>
+public sealed class Submission : AuditableEntity<Guid>, IMentionable
 {
     /// <summary>
     /// The longest title accepted, matching Discord's own embed title limit so
@@ -194,9 +194,7 @@ public sealed class Submission : AuditableEntity<Guid>
     /// </summary>
     public IReadOnlyCollection<Vote> Votes => _votes;
 
-    /// <summary>
-    /// Gets a Discord mention for the applicant.
-    /// </summary>
+    /// <inheritdoc/>
     public string Mention => MentionUtility.User(ApplicantId);
 
     /// <summary>
@@ -463,7 +461,7 @@ public sealed class Submission : AuditableEntity<Guid>
             return existing;
         }
 
-        Vote vote = Vote.Create(Id, voterId, choice, castAt, comment);
+        var vote = Vote.Create(Id, voterId, choice, castAt, comment);
         _votes.Add(vote);
 
         return vote;
