@@ -74,6 +74,9 @@ public static class InfrastructureServiceCollectionExtensions
 
     private static void AddPersistence(IServiceCollection services)
     {
+        // Stateless apart from the clock, so one instance serves every context.
+        services.TryAddSingleton<AuditStampInterceptor>();
+
         services.AddDbContext<FushiDbContext>((provider, builder) =>
         {
             DatabaseOptions options = provider
@@ -96,6 +99,8 @@ public static class InfrastructureServiceCollectionExtensions
 
             builder.EnableSensitiveDataLogging(options.EnableSensitiveDataLogging);
             builder.EnableDetailedErrors(options.EnableSensitiveDataLogging);
+
+            builder.AddInterceptors(provider.GetRequiredService<AuditStampInterceptor>());
         });
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
