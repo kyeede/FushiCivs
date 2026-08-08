@@ -113,7 +113,7 @@
     to, which is why 4.x sits next to 10.x here. This is correct, not a typo.
   -->
   <ItemGroup Label="Serilog">
-    <PackageVersion Include="Serilog" Version="4.3.1" />
+    <PackageVersion Include="Serilog" Version="4.4.0" />
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="$(SerilogHostingVersion)" />
     <PackageVersion Include="Serilog.Settings.Configuration" Version="$(SerilogHostingVersion)" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
@@ -128,7 +128,7 @@
       Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"
       Version="$(OpenTelemetryVersion)"
     />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.13.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.17.0" />
   </ItemGroup>
 
   <ItemGroup Label="Validation">
@@ -138,7 +138,7 @@
   <ItemGroup Label="Testing">
     <PackageVersion Include="xunit.v3.mtp-v2" Version="3.2.2" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
-    <PackageVersion Include="NSubstitute" Version="6.0.0" />
+    <PackageVersion Include="NSubstitute" Version="6.1.0" />
     <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <PackageVersion
