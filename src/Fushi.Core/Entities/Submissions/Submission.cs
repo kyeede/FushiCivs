@@ -22,7 +22,7 @@ namespace Fushi.Core.Entities.Submissions;
 /// </remarks>
 /// <seealso cref="SubmissionStatus"/>
 /// <seealso cref="SubmissionOutcome"/>
-public sealed class Submission : AuditableEntity<Guid>, ICodedEntity, IMentionable
+public sealed class Submission : AuditableEntity<Guid>
 {
     /// <summary>
     /// The longest title accepted, matching Discord's own embed title limit so
@@ -96,7 +96,9 @@ public sealed class Submission : AuditableEntity<Guid>, ICodedEntity, IMentionab
     {
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the public short code users type to address this submission.
+    /// </summary>
     public ShortCode Code { get; private set; }
 
     /// <summary>
@@ -192,7 +194,9 @@ public sealed class Submission : AuditableEntity<Guid>, ICodedEntity, IMentionab
     /// </summary>
     public IReadOnlyCollection<Vote> Votes => _votes;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets a Discord mention for the applicant.
+    /// </summary>
     public string Mention => MentionUtility.User(ApplicantId);
 
     /// <summary>

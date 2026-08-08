@@ -17,7 +17,7 @@ namespace Fushi.Core.Entities.Cycles;
 /// months later from the row alone.
 /// </remarks>
 /// <seealso cref="CycleWindow"/>
-public sealed class Cycle : AuditableEntity<Guid>, ICodedEntity
+public sealed class Cycle : AuditableEntity<Guid>
 {
     private readonly List<Submission> _submissions = [];
 
@@ -72,7 +72,9 @@ public sealed class Cycle : AuditableEntity<Guid>, ICodedEntity
     {
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the public short code users type to address this cycle.
+    /// </summary>
     public ShortCode Code { get; private set; }
 
     /// <summary>
