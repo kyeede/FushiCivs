@@ -1,6 +1,8 @@
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
+using Fushi.Core.Abstractions;
 using Fushi.Core.Entities.Audits;
 using Fushi.Core.Entities.Cycles;
 using Fushi.Core.Entities.Guilds;
@@ -22,14 +24,16 @@ namespace Fushi.Infrastructure.Persistence;
 /// written here. A five-hundred-line <c>OnModelCreating</c> is the usual outcome
 /// of doing otherwise, and it becomes the file nobody wants to touch.
 /// <br/>
-/// Two conventions are applied model-wide because applying them per property is a
-/// standing invitation to miss one:
+/// Several conventions are applied model-wide because applying them per entity or
+/// per property is a standing invitation to miss one:
 /// <br/>
 /// Every <see cref="ulong"/> is stored through <see cref="SnowflakeConverter"/>,
 /// since PostgreSQL has no unsigned 64-bit type. Every table and column is named
 /// in <c>snake_case</c>, which is what PostgreSQL folds unquoted identifiers to
 /// anyway — leaving them in PascalCase means every hand-written query needs
-/// quotes around every name.
+/// quotes around every name. Every <see cref="IDeletable"/> is filtered to its
+/// live rows, and every <see cref="IMentionable"/> keeps its mention out of the
+/// schema.
 /// </remarks>
 /// <param name="options">The configured options, supplied by the host.</param>
 public sealed class FushiDbContext(DbContextOptions<FushiDbContext> options)
@@ -101,7 +105,64 @@ public sealed class FushiDbContext(DbContextOptions<FushiDbContext> options)
 
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
+        ApplyMarkerInterfaceConventions(modelBuilder);
         ApplySnakeCaseNames(modelBuilder);
+    }
+
+    /// <summary>
+    /// Applies the mapping each of the audit marker interfaces implies.
+    /// </summary>
+    /// <remarks>
+    /// An <see cref="IMentionable"/> builds its mention from a snowflake it
+    /// already stores, so the mention is presentation rather than state. Mapping it
+    /// would create a column that could disagree with what it was derived from.
+    /// <br/>
+    /// An <see cref="IDeletable"/> is never physically removed, so ordinary reads
+    /// have to exclude the rows that are gone. Doing that here rather than in each
+    /// entity's configuration means a new soft-deletable entity is filtered the day
+    /// it is added, instead of leaking deleted rows until somebody notices the
+    /// missing line. The filter tests the timestamp because
+    /// <see cref="IDeletable.IsDeleted"/> is computed from it and is not stored.
+    /// </remarks>
+    /// <param name="modelBuilder">The model under construction.</param>
+    private static void ApplyMarkerInterfaceConventions(ModelBuilder modelBuilder)
+    {
+        // Configuring an entity can add types to the model, so the set is taken
+        // before the loop rather than iterated as it changes.
+        List<Type> clrTypes = modelBuilder.Model
+            .GetEntityTypes()
+            .Select(entity => entity.ClrType)
+            .ToList();
+
+        foreach (Type clrType in clrTypes)
+        {
+            if (typeof(IMentionable).IsAssignableFrom(clrType))
+            {
+                modelBuilder.Entity(clrType).Ignore(nameof(IMentionable.Mention));
+            }
+
+            if (typeof(IDeletable).IsAssignableFrom(clrType))
+            {
+                modelBuilder.Entity(clrType).HasQueryFilter(LiveRowsOnly(clrType));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Builds <c>entity =&gt; entity.DeletedAt == null</c> for a type known only at
+    /// run time.
+    /// </summary>
+    /// <param name="clrType">The entity type the filter applies to.</param>
+    /// <returns>The filter expression.</returns>
+    private static LambdaExpression LiveRowsOnly(Type clrType)
+    {
+        ParameterExpression entity = Expression.Parameter(clrType, "entity");
+
+        return Expression.Lambda(
+            Expression.Equal(
+                Expression.Property(entity, nameof(IDeletable.DeletedAt)),
+                Expression.Constant(null, typeof(DateTimeOffset?))),
+            entity);
     }
 
     private static void ApplySnakeCaseNames(ModelBuilder modelBuilder)

@@ -30,11 +30,6 @@ internal sealed class VotingPermissionConfiguration
         builder.Property(permission => permission.Note)
             .HasMaxLength(512);
 
-        // Mention is built from Scope and TargetId on every read. It is presentation,
-        // not state, and storing it would only create something that could disagree
-        // with the two columns it is derived from.
-        builder.Ignore(permission => permission.Mention);
-
         // A guild should not end up with two live grants for the same target, which
         // would have to be revoked twice to take effect. The index is filtered on the
         // soft-delete column so that revoking and re-granting stays possible.
@@ -48,7 +43,5 @@ internal sealed class VotingPermissionConfiguration
             .HasFilter("deleted_at IS NULL")
             .IsUnique()
             .HasDatabaseName("ix_voting_permissions_guild_target_live");
-
-        builder.HasQueryFilter(permission => permission.DeletedAt == null);
     }
 }

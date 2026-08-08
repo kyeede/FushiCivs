@@ -91,9 +91,5 @@ internal sealed class GuildConfiguration : IEntityTypeConfiguration<Guild>
         builder.Navigation(guild => guild.VotingPermissions)
             .HasField("_votingPermissions")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
-
-        // Soft deletion is expressed as a timestamp, and IsDeleted is computed from
-        // it rather than stored, so the filter has to test the column.
-        builder.HasQueryFilter(guild => guild.DeletedAt == null);
     }
 }

@@ -82,7 +82,5 @@ internal sealed class CycleConfiguration : IEntityTypeConfiguration<Cycle>
             .IsUnique()
             .HasFilter($"status = {(int)CycleStatus.Open} AND deleted_at IS NULL")
             .HasDatabaseName("ix_cycles_one_open_per_guild");
-
-        builder.HasQueryFilter(cycle => cycle.DeletedAt == null);
     }
 }

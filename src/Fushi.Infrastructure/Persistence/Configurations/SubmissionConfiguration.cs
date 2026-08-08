@@ -44,11 +44,10 @@ internal sealed class SubmissionConfiguration : IEntityTypeConfiguration<Submiss
         builder.Property(submission => submission.Outcome)
             .HasConversion<int?>();
 
-        // Tally is recomputed from the loaded votes on every read, and Mention is
-        // built from the applicant snowflake. Neither is state.
+        // Tally is recomputed from the loaded votes on every read, and IsTerminal
+        // from the status. Neither is state.
         builder.Ignore(submission => submission.Tally);
         builder.Ignore(submission => submission.IsTerminal);
-        builder.Ignore(submission => submission.Mention);
 
         builder.HasMany(submission => submission.Votes)
             .WithOne()
@@ -82,7 +81,5 @@ internal sealed class SubmissionConfiguration : IEntityTypeConfiguration<Submiss
 
         builder.HasIndex(submission => submission.CycleId)
             .HasDatabaseName("ix_submissions_cycle");
-
-        builder.HasQueryFilter(submission => submission.DeletedAt == null);
     }
 }

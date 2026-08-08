@@ -38,7 +38,6 @@ internal sealed class VoteConfiguration : IEntityTypeConfiguration<Vote>
         builder.Property(vote => vote.RevisionCount)
             .HasDefaultValue(0);
 
-        builder.Ignore(vote => vote.Mention);
         builder.Ignore(vote => vote.IsDeciding);
 
         // One live vote per person per submission. The entity already refuses to add
@@ -48,7 +47,5 @@ internal sealed class VoteConfiguration : IEntityTypeConfiguration<Vote>
             .IsUnique()
             .HasFilter("deleted_at IS NULL")
             .HasDatabaseName("ix_votes_submission_voter_live");
-
-        builder.HasQueryFilter(vote => vote.DeletedAt == null);
     }
 }
