@@ -1,4 +1,5 @@
 using Fushi.Application.Abstractions.Persistence;
+using Fushi.Application.Abstractions.Persistence.Repositories;
 using Fushi.Infrastructure.Options;
 using Fushi.Infrastructure.Persistence;
 using Fushi.Infrastructure.Persistence.Repositories;

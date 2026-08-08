@@ -1,5 +1,5 @@
 using Fushi.Application.Abstractions.Messaging;
-using Fushi.Application.Abstractions.Persistence;
+using Fushi.Application.Abstractions.Persistence.Repositories;
 using Fushi.Core.Entities.Submissions;
 using Fushi.Core.Results;
 using Fushi.Core.Utilities.Paging;

@@ -1,5 +1,5 @@
 using Fushi.Application.Abstractions.Messaging;
-using Fushi.Application.Abstractions.Persistence;
+using Fushi.Application.Abstractions.Persistence.Repositories;
 using Fushi.Application.Errors;
 using Fushi.Core.Entities.Guilds;
 using Fushi.Core.Results;

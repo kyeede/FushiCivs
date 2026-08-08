@@ -2,7 +2,7 @@ using Fushi.Core.Entities.Cycles;
 using Fushi.Core.Identifiers;
 using Fushi.Core.Utilities.Paging;
 
-namespace Fushi.Application.Abstractions.Persistence;
+namespace Fushi.Application.Abstractions.Persistence.Repositories;
 
 /// <summary>
 /// Reads and stores voting cycles.

@@ -1,6 +1,6 @@
 using Fushi.Core.Entities.Guilds;
 
-namespace Fushi.Application.Abstractions.Persistence;
+namespace Fushi.Application.Abstractions.Persistence.Repositories;
 
 /// <summary>
 /// Reads and stores guild configuration.

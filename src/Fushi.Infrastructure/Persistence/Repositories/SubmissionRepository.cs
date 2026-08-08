@@ -1,4 +1,4 @@
-using Fushi.Application.Abstractions.Persistence;
+using Fushi.Application.Abstractions.Persistence.Repositories;
 using Fushi.Core.Entities.Submissions;
 using Fushi.Core.Identifiers;
 using Fushi.Core.Utilities.Paging;

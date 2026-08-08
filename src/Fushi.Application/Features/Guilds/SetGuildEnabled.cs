@@ -1,6 +1,7 @@
 using Fushi.Application.Abstractions.Discord;
 using Fushi.Application.Abstractions.Messaging;
 using Fushi.Application.Abstractions.Persistence;
+using Fushi.Application.Abstractions.Persistence.Repositories;
 using Fushi.Application.Errors;
 using Fushi.Application.Logging;
 using Fushi.Core.Entities.Audits;
