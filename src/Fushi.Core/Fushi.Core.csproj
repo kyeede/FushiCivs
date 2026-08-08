@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Fushi.Core</RootNamespace>
+    <AssemblyName>Fushi.Core</AssemblyName>
+    <Description>
+      Entities, identifiers, and result primitives for Fushi. This project has
+      no package references by design: it is the one layer every other layer may
+      depend on, so it must stay free of any framework that could pull a
+      transitive dependency into all of them.
+    </Description>
+  </PropertyGroup>
+
+</Project>

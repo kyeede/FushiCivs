@@ -1,0 +1,146 @@
+# Local development stack for Fushi.
+#
+# Only PostgreSQL starts by default, because it is the only service the bot
+# genuinely cannot run without. Everything else sits behind a profile so that
+# `docker compose up -d` stays fast and predictable:
+#
+#   docker compose up -d                      PostgreSQL only
+#   docker compose --profile cache up -d      + Redis (HybridCache L2 tier)
+#   docker compose --profile tools up -d      + Adminer (database browser)
+#
+# Values come from .env, which docker compose reads automatically from the
+# directory it is invoked in. The ${VAR:-default} form means a missing .env
+# still produces a working stack; the defaults match .env.example exactly.
+
+name: fushi
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: fushi-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fushi}
+      POSTGRES_USER: ${POSTGRES_USER:-fushi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fushi_dev}
+      # The application stores every instant as UTC and converts to the guild's
+      # IANA zone only for display. Pinning the server to UTC keeps ad-hoc psql
+      # queries agreeing with what the application sees, instead of silently
+      # rendering timestamps in the host machine's local zone.
+      TZ: UTC
+      PGTZ: UTC
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      # Bound to loopback so the database is not exposed on the LAN. Change the
+      # host port with POSTGRES_HOST_PORT when 5432 is already taken.
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      # -U matters: pg_isready defaults to the OS user of the container, which
+      # is not the role the database was created for, and would report a false
+      # failure while the server is perfectly healthy.
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fushi} -d ${POSTGRES_DB:-fushi}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      # Migrations on first boot can take a while on a cold volume; the start
+      # period stops those attempts from counting as failures.
+      start_period: 30s
+    networks:
+      - fushi
+
+  redis:
+    image: redis:7-alpine
+    container_name: fushi-redis
+    restart: unless-stopped
+    # Optional. HybridCache runs with its in-memory L1 tier alone when
+    # ConnectionStrings__Redis is empty; Redis only adds the shared L2 tier,
+    # which matters once more than one instance of the bot is running.
+    profiles: [cache]
+    command: >-
+      redis-server
+      --save 60 1
+      --loglevel warning
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    ports:
+      - "127.0.0.1:${REDIS_HOST_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks:
+      - fushi
+
+  adminer:
+    image: adminer:4
+    container_name: fushi-adminer
+    restart: unless-stopped
+    profiles: [tools]
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: dracula
+    ports:
+      - "127.0.0.1:${ADMINER_HOST_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fushi
+
+  # ── bot ───────────────────────────────────────────────────────────────────
+  # Left commented out on purpose. During development the bot runs on the host
+  # under `dotnet watch`, which gives hot reload and a debugger; containerising
+  # it there only adds a rebuild between every edit. This block is the shape of
+  # the production deployment, kept here so the full stack is documented in one
+  # place. Uncomment it, build the image, and it will work as written.
+  #
+  # bot:
+  #   build:
+  #     # The build context is the repository root, not build/, because the
+  #     # Dockerfile copies Directory.*.props, global.json, and nuget.config
+  #     # from the root to make restore reproducible.
+  #     context: .
+  #     dockerfile: build/Dockerfile
+  #   container_name: fushi-bot
+  #   restart: unless-stopped
+  #   environment:
+  #     DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Production}
+  #     Discord__Token: ${Discord__Token:?Discord__Token must be set}
+  #     Discord__DevelopmentGuildId: ${Discord__DevelopmentGuildId:-}
+  #     # Host is the compose service name, not localhost: inside the network
+  #     # the bot reaches PostgreSQL on port 5432 regardless of what
+  #     # POSTGRES_HOST_PORT publishes on the host.
+  #     ConnectionStrings__Database: >-
+  #       Host=postgres;Port=5432;Database=${POSTGRES_DB:-fushi};
+  #       Username=${POSTGRES_USER:-fushi};Password=${POSTGRES_PASSWORD:-fushi_dev}
+  #     ConnectionStrings__Redis: ${ConnectionStrings__Redis:-}
+  #     OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+  #     OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-fushi}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     # Only meaningful together with --profile cache. Compose ignores a
+  #     # dependency on a service that no active profile enables.
+  #     redis:
+  #       condition: service_healthy
+  #       required: false
+  #   networks:
+  #     - fushi
+
+volumes:
+  postgres-data:
+    name: fushi-postgres-data
+  redis-data:
+    name: fushi-redis-data
+
+networks:
+  fushi:
+    name: fushi
+    driver: bridge

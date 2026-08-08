@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Everything a test project needs — the executable output type, the xUnit v3
+    Microsoft Testing Platform stack, Shouldly, NSubstitute, coverage collection,
+    and the Xunit/Shouldly global usings — is supplied by Directory.Build.targets
+    for any project under tests/. Only the identity and the subject under test
+    belong here.
+  -->
+  <PropertyGroup>
+    <RootNamespace>Fushi.Core.Tests</RootNamespace>
+    <AssemblyName>Fushi.Core.Tests</AssemblyName>
+    <Description>Unit tests for the Fushi.Core domain primitives.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Fushi.Core/Fushi.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,93 @@
+{
+  // ── Files ─────────────────────────────────────────────────────────────────
+  // LF everywhere. .gitattributes normalises on commit, but matching it in the
+  // editor means a Windows checkout does not show every file as modified the
+  // first time it is touched.
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+
+  // Build output is large, regenerated constantly, and contains copies of
+  // source that make "find in files" results ambiguous. Excluding it from the
+  // watcher also stops the file-watch limit being hit on Linux.
+  "files.watcherExclude": {
+    "**/artifacts/**": true,
+    "**/obj/**": true,
+    "**/bin/**": true,
+    "**/.git/objects/**": true,
+    "**/node_modules/**": true
+  },
+  "search.exclude": {
+    "**/artifacts": true,
+    "**/obj": true,
+    "**/bin": true,
+    "**/*.received.*": true
+  },
+  "files.exclude": {
+    "**/.vs": true
+  },
+
+  // ── Formatting ────────────────────────────────────────────────────────────
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  // .editorconfig is the single source of truth for layout, and it is the same
+  // file `dotnet format` reads in CI. Nothing about formatting should be
+  // configured here that is expressible there.
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.formatOnPaste": true,
+    // Matches the 100-column guide the .editorconfig layout rules assume.
+    "editor.rulers": [100]
+  },
+  "[markdown]": {
+    // Markdown uses two trailing spaces as a hard line break, so trimming
+    // whitespace on save would silently rewrite the rendered output.
+    "files.trimTrailingWhitespace": false
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml",
+    "editor.tabSize": 2,
+    "editor.autoIndent": "keep"
+  },
+  "[shellscript]": {
+    "files.eol": "\n"
+  },
+
+  // ── C# language service ───────────────────────────────────────────────────
+  // Analyzers, code style, and the EnforceCodeStyleInBuild rules from
+  // Directory.Build.props all run in the editor as well, so a violation shows
+  // up while typing rather than at the point CI rejects the push.
+  "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "fullSolution",
+  "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "fullSolution",
+  "dotnet.enableXamlTools": false,
+  "dotnet.server.useOmnisharp": false,
+  "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+  "dotnet.inlayHints.enableInlayHintsForParameters": true,
+  "dotnet.inlayHints.enableInlayHintsForTypes": true,
+  "dotnet.unitTests.runSettingsPath": "",
+
+  // Kept for anyone who has explicitly opted back into the OmniSharp server;
+  // ignored by the Roslyn language service above.
+  "omnisharp.enableRoslynAnalyzers": true,
+  "omnisharp.enableEditorConfigSupport": true,
+
+  // The solution file is .slnx rather than .sln; naming it stops the extension
+  // from prompting on every window reload.
+  "dotnet.defaultSolution": "Fushi.slnx",
+
+  // ── Testing ───────────────────────────────────────────────────────────────
+  // Tests run on Microsoft.Testing.Platform (see global.json), not VSTest.
+  // VSTest `--filter` expressions do not apply; use --filter-class,
+  // --filter-method, --filter-trait, or --filter-query from the terminal.
+  "dotnet.testWindow.disableBuildOnRefresh": false,
+
+  // ── Terminal ──────────────────────────────────────────────────────────────
+  // The scripts in build/ are POSIX shell. On Windows they need Git Bash or WSL
+  // rather than PowerShell.
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "dotnet.formatting.organizeImportsOnFormat": true
+}

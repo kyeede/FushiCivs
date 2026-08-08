@@ -1,0 +1,144 @@
+version: 2
+
+updates:
+  # ── NuGet ───────────────────────────────────────────────────────────────────
+  # Rooted at "/" rather than at each project, because the repository uses
+  # Central Package Management: every version lives in Directory.Packages.props
+  # and the .csproj files carry no version attributes for Dependabot to find.
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 5
+    labels: [dependencies, nuget]
+    commit-message:
+      prefix: "build"
+      include: scope
+
+    groups:
+      # WARNING — read before merging anything this group produces.
+      #
+      # The Microsoft.Extensions.* and EF Core packages are pinned to the exact
+      # SDK band named in global.json, through the $(DotNetPreviewVersion)
+      # property in Directory.Packages.props. Preview assemblies from different
+      # bands do not interoperate: mixing them produces either a restore
+      # conflict or, worse, a runtime MissingMethodException that only shows up
+      # on a code path nobody exercised locally.
+      #
+      # These packages therefore move together with the SDK or not at all.
+      # Bumping one of them without also updating global.json and the whole
+      # group is not a valid change, no matter how green the pull request looks.
+      dotnet-preview-band:
+        applies-to: version-updates
+        patterns:
+          - "Microsoft.Extensions.*"
+          - "Microsoft.EntityFrameworkCore*"
+        # Npgsql tracks the EF Core major on its own version line
+        # ($(NpgsqlVersion)), so it is reviewed alongside them but is not part
+        # of the shared property and can legitimately move on its own.
+        exclude-patterns:
+          - "Microsoft.Extensions.Caching.Hybrid"
+          - "Microsoft.Extensions.Caching.StackExchangeRedis"
+          - "Microsoft.Extensions.Http.Resilience"
+
+      # These three ship on the servicing cadence rather than the runtime
+      # cadence and have no 11.0 preview build, which is why they sit on
+      # $(ExtensionsServicingVersion) instead. Grouped separately so their
+      # updates are not blocked behind an SDK band move.
+      extensions-servicing:
+        applies-to: version-updates
+        patterns:
+          - "Microsoft.Extensions.Caching.Hybrid"
+          - "Microsoft.Extensions.Caching.StackExchangeRedis"
+          - "Microsoft.Extensions.Http.Resilience"
+
+      npgsql:
+        applies-to: version-updates
+        patterns:
+          - "Npgsql*"
+
+      discord-net:
+        applies-to: version-updates
+        patterns:
+          - "Discord.Net*"
+
+      serilog:
+        applies-to: version-updates
+        patterns:
+          - "Serilog*"
+
+      opentelemetry:
+        applies-to: version-updates
+        patterns:
+          - "OpenTelemetry*"
+
+      # One pull request for the whole test stack. These packages are only ever
+      # upgraded together in practice, and reviewing them separately means
+      # running the same test suite four times to learn the same thing.
+      testing:
+        applies-to: version-updates
+        patterns:
+          - "xunit*"
+          - "Shouldly"
+          - "NSubstitute*"
+          - "coverlet*"
+          - "Testcontainers*"
+
+  # ── GitHub Actions ──────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 3
+    labels: [dependencies, ci]
+    commit-message:
+      prefix: "ci"
+    groups:
+      # Actions are pinned to major version tags, so most updates here are
+      # no-ops within a major and there is no reason to review them one at a
+      # time. A genuine major bump will still arrive as its own pull request.
+      actions:
+        applies-to: version-updates
+        patterns: ["*"]
+
+  # ── Docker ──────────────────────────────────────────────────────────────────
+  # Covers build/Dockerfile. The base images there use floating preview tags, so
+  # Dependabot will mostly have nothing to say until .NET 11 reaches GA and the
+  # tags become fixed.
+  - package-ecosystem: docker
+    directory: /build
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 3
+    labels: [dependencies, docker]
+    commit-message:
+      prefix: "build"
+
+  # docker-compose.yml lives at the root and is scanned separately from the
+  # Dockerfile. These images (PostgreSQL, Redis, Adminer) are development
+  # infrastructure, so an upgrade here cannot break production, but a PostgreSQL
+  # major bump still needs a deliberate decision: the named volume's data
+  # directory is not forward-compatible across majors.
+  - package-ecosystem: docker-compose
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 3
+    labels: [dependencies, docker]
+    commit-message:
+      prefix: "build"
+    ignore:
+      - dependency-name: postgres
+        update-types: [version-update:semver-major]

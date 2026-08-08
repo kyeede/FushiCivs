@@ -1,0 +1,76 @@
+# Normalise every text file to LF in the object database. Windows-only script
+# formats are the sole exception, since their interpreters require CRLF.
+* text=auto eol=lf
+
+# ── .NET ─────────────────────────────────────────────────────────────────────
+*.cs        text eol=lf diff=csharp
+*.csx       text eol=lf diff=csharp
+*.csproj    text eol=lf
+*.slnx      text eol=lf
+*.props     text eol=lf
+*.targets   text eol=lf
+*.config    text eol=lf
+
+# ── Config & data ────────────────────────────────────────────────────────────
+*.json      text eol=lf
+*.jsonc     text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.xml       text eol=lf
+*.toml      text eol=lf
+*.sql       text eol=lf
+
+# ── Docs ─────────────────────────────────────────────────────────────────────
+*.md        text eol=lf
+*.txt       text eol=lf
+LICENSE     text eol=lf
+
+# ── Scripts ──────────────────────────────────────────────────────────────────
+*.sh        text eol=lf
+*.bash      text eol=lf
+*.ps1       text eol=crlf
+*.psm1      text eol=crlf
+*.cmd       text eol=crlf
+*.bat       text eol=crlf
+
+# ── Docker ───────────────────────────────────────────────────────────────────
+Dockerfile          text eol=lf
+Dockerfile.*        text eol=lf
+docker-compose*.yml text eol=lf
+.dockerignore       text eol=lf
+
+# ── Binary — never diffed, never merged ──────────────────────────────────────
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.webp   binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.otf    binary
+*.pfx    binary
+*.snk    binary
+*.zip    binary
+*.gz     binary
+*.tar    binary
+*.dll    binary
+*.exe    binary
+*.pdb    binary
+*.nupkg  binary
+*.snupkg binary
+
+# SVG is text for normalisation purposes but meaningless in a textual diff.
+*.svg    text eol=lf -diff
+
+# ── Linguist — keep generated output out of the language statistics ──────────
+**/Migrations/*.cs          linguist-generated=true
+**/Migrations/*.Designer.cs linguist-generated=true
+**/*.g.cs                   linguist-generated=true
+**/*.Designer.cs            linguist-generated=true
+
+# ── Merge strategies ─────────────────────────────────────────────────────────
+# Lock files regenerate deterministically; a textual merge only ever corrupts them.
+packages.lock.json binary merge=ours
+CHANGELOG.md       merge=union

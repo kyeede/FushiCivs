@@ -1,0 +1,63 @@
+{
+  "version": "0.2.0",
+  // No secrets live in this file, and none should ever be added to it: it is
+  // tracked in git. The bot token is read from the environment, which is why
+  // every launch configuration points envFile at .env (gitignored) rather than
+  // listing values inline.
+  "configurations": [
+    {
+      "name": "Fushi.Host (Debug)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      // UseArtifactsOutput redirects every project's output into one tree, so
+      // the binary is not under src/Fushi.Host/bin. The layout is
+      // artifacts/bin/<project>/<lowercase configuration>/.
+      "program": "${workspaceFolder}/artifacts/bin/Fushi.Host/debug/Fushi.Host.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Fushi.Host",
+      "stopAtEntry": false,
+      // The bot logs to stdout and expects to be watched there; an external
+      // terminal would hide it behind another window.
+      "console": "internalConsole",
+      "internalConsoleOptions": "openOnSessionStart",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "DOTNET_ENVIRONMENT": "Development"
+      },
+      // Stepping into framework and Discord.Net internals is almost never what
+      // is wanted while debugging a command handler.
+      "justMyCode": true,
+      "requireExactSource": false
+    },
+    {
+      "name": "Fushi.Host (Release)",
+      "type": "coreclr",
+      "request": "launch",
+      // Useful for reproducing something that only misbehaves with the
+      // optimiser on. Assumes a Release build already exists; run
+      // `build/build.sh --no-test` first.
+      "program": "${workspaceFolder}/artifacts/bin/Fushi.Host/release/Fushi.Host.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Fushi.Host",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "DOTNET_ENVIRONMENT": "Production"
+      },
+      "justMyCode": false
+    },
+    {
+      "name": "Attach to running process",
+      "type": "coreclr",
+      "request": "attach",
+      // Prompts for the process to attach to. Use this for a host started by
+      // `dotnet watch`, by the compose stack, or inside a container with the
+      // debugger forwarded.
+      "processId": "${command:pickProcess}",
+      "justMyCode": true
+    }
+  ],
+  "compounds": []
+}

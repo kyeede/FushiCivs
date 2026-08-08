@@ -1,0 +1,85 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  schedule:
+    # 04:17 every Monday, UTC. A weekly run matters because CodeQL's query
+    # packs are updated continuously: code that was clean when it merged can
+    # start matching a query written afterwards, and nothing else in the
+    # pipeline would ever notice. The odd minute avoids the top-of-hour crush
+    # on GitHub's scheduler, which delays jobs queued on the hour.
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  analyse:
+    name: Analyse csharp
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      # Uploading the SARIF results to the Security tab needs write access to
+      # security events. Everything else stays read-only; this is the one
+      # elevated permission the workflow requires.
+      security-events: write
+      contents: read
+      actions: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # C# only. The repository contains no other compiled language, and the
+        # shell scripts under build/ are not a language CodeQL analyses.
+        language: [csharp]
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Initialise CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          language: ${{ matrix.language }}
+          # security-and-quality is a superset of the default query suite. The
+          # extra quality queries overlap with the Roslyn analyzers CI already
+          # enforces, but they see across project boundaries in ways a
+          # per-assembly analyzer cannot.
+          queries: security-and-quality
+          # Manual, because autobuild guesses at the build command and this
+          # repository needs the exact SDK band from global.json plus a restore
+          # against central package management.
+          build-mode: manual
+
+      - name: Build
+        # CodeQL extracts C# by observing a real compilation, so this build is
+        # not redundant with the one in ci.yml: it is what produces the
+        # database being analysed. Release rather than Debug so the analysed
+        # code is what would actually ship.
+        run: |
+          dotnet restore Fushi.slnx
+          dotnet build Fushi.slnx --configuration Release --no-restore
+
+      - name: Analyse
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}

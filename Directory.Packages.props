@@ -1,0 +1,168 @@
+<Project>
+  <!--
+    Central Package Management. Projects reference a package by name only; the
+    single authoritative version for the whole repository lives here.
+  -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <!--
+    The Microsoft.Extensions.* and EF Core build numbers are pinned to the exact
+    SDK band in global.json. Preview assemblies of different bands do not
+    interoperate, so these versions move together or not at all.
+  -->
+  <PropertyGroup Label="VersionBands">
+    <DotNetPreviewVersion>11.0.0-preview.6.26359.118</DotNetPreviewVersion>
+    <NpgsqlVersion>11.0.0-preview.6</NpgsqlVersion>
+    <DiscordNetVersion>3.20.1</DiscordNetVersion>
+    <SerilogHostingVersion>10.0.0</SerilogHostingVersion>
+    <!-- Extensions libraries that ship on the servicing cadence rather than the
+         runtime cadence, and so have no 11.0 preview build. -->
+    <ExtensionsServicingVersion>10.8.0</ExtensionsServicingVersion>
+    <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
+    <TestcontainersVersion>4.13.0</TestcontainersVersion>
+  </PropertyGroup>
+
+  <ItemGroup Label="Discord">
+    <PackageVersion Include="Discord.Net.Core" Version="$(DiscordNetVersion)" />
+    <PackageVersion Include="Discord.Net.Rest" Version="$(DiscordNetVersion)" />
+    <PackageVersion Include="Discord.Net.WebSocket" Version="$(DiscordNetVersion)" />
+    <PackageVersion Include="Discord.Net.Interactions" Version="$(DiscordNetVersion)" />
+  </ItemGroup>
+
+  <!--
+    PostgreSQL rather than MySQL: Npgsql ships a provider for every EF Core
+    major in lockstep, while the MySQL providers trail by two majors and have no
+    EF Core 11 build at all.
+  -->
+  <ItemGroup Label="EntityFrameworkCore">
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(DotNetPreviewVersion)" />
+    <PackageVersion
+      Include="Microsoft.EntityFrameworkCore.Relational"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion
+      Include="Microsoft.EntityFrameworkCore.Design"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="$(NpgsqlVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Label="MicrosoftExtensions">
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(DotNetPreviewVersion)" />
+    <PackageVersion
+      Include="Microsoft.Extensions.Hosting.Abstractions"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion
+      Include="Microsoft.Extensions.DependencyInjection"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion
+      Include="Microsoft.Extensions.DependencyInjection.Abstractions"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion
+      Include="Microsoft.Extensions.Configuration.Abstractions"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion
+      Include="Microsoft.Extensions.Configuration.Binder"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion
+      Include="Microsoft.Extensions.Configuration.EnvironmentVariables"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion
+      Include="Microsoft.Extensions.Configuration.UserSecrets"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion
+      Include="Microsoft.Extensions.Logging.Abstractions"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="$(DotNetPreviewVersion)" />
+    <PackageVersion
+      Include="Microsoft.Extensions.Options.ConfigurationExtensions"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion
+      Include="Microsoft.Extensions.Options.DataAnnotations"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion
+      Include="Microsoft.Extensions.Diagnostics.HealthChecks"
+      Version="$(DotNetPreviewVersion)"
+    />
+  </ItemGroup>
+
+  <ItemGroup Label="Caching">
+    <!-- These two are deliberately on different versions. HybridCache ships out of
+         band on the servicing line and has no preview build, whereas the Redis
+         distributed cache ships with the framework and so follows the SDK band like
+         the rest of Microsoft.Extensions.*. Aligning them would mean asking for a
+         package that was never published. -->
+    <PackageVersion
+      Include="Microsoft.Extensions.Caching.Hybrid"
+      Version="$(ExtensionsServicingVersion)"
+    />
+    <PackageVersion
+      Include="Microsoft.Extensions.Caching.StackExchangeRedis"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion Include="StackExchange.Redis" Version="3.1.13" />
+  </ItemGroup>
+
+  <ItemGroup Label="Resilience">
+    <PackageVersion
+      Include="Microsoft.Extensions.Http.Resilience"
+      Version="$(ExtensionsServicingVersion)"
+    />
+  </ItemGroup>
+
+  <!--
+    Serilog's core package versions independently of its hosting integration:
+    Serilog.Extensions.* track the Microsoft.Extensions.Hosting major they bind
+    to, which is why 4.x sits next to 10.x here. This is correct, not a typo.
+  -->
+  <ItemGroup Label="Serilog">
+    <PackageVersion Include="Serilog" Version="4.3.1" />
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="$(SerilogHostingVersion)" />
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="$(SerilogHostingVersion)" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+    <PackageVersion Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Telemetry">
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
+    <PackageVersion
+      Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"
+      Version="$(OpenTelemetryVersion)"
+    />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.13.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Validation">
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
+  </ItemGroup>
+
+  <ItemGroup Label="Testing">
+    <PackageVersion Include="xunit.v3.mtp-v2" Version="3.2.2" />
+    <PackageVersion Include="Shouldly" Version="4.3.0" />
+    <PackageVersion Include="NSubstitute" Version="6.0.0" />
+    <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
+    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+    <PackageVersion
+      Include="Microsoft.EntityFrameworkCore.InMemory"
+      Version="$(DotNetPreviewVersion)"
+    />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="$(TestcontainersVersion)" />
+    <PackageVersion Include="Testcontainers.Redis" Version="$(TestcontainersVersion)" />
+  </ItemGroup>
+</Project>

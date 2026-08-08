@@ -1,0 +1,124 @@
+name: Bug report
+description: Something behaves differently from how it is documented.
+title: "[bug] "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing, please check that this is not a configuration problem —
+        `docs/operations.md` has a troubleshooting section covering the failures
+        that turn out to be environmental most of the time.
+
+        **Do not paste a bot token, a database password, or an OTLP endpoint
+        with credentials in it.** Redact them before submitting.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened
+      description: The behaviour you observed, in one or two sentences.
+      placeholder: >-
+        Finalising a cycle marked every submission Rejected, including the ones
+        that had received no votes at all.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+      description: >-
+        And where that expectation comes from, if it is written down somewhere.
+      placeholder: >-
+        docs/domain.md says a submission that misses quorum is Skipped, not
+        Rejected.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: >-
+        Numbered, starting from a fresh state. Include the exact commands and
+        options used — a short code, an option value, or a permission that was
+        or was not granted is often the whole difference.
+      value: |
+        1. `/config policy quorum:3 ratio:60`
+        2. `/cycle open`
+        3. Submit one application; cast no votes on it
+        4. `/cycle finalise`
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Where the problem appears to be. A guess is fine.
+      options:
+        - Slash commands and components (Fushi.Interactions)
+        - Voting and outcome arithmetic (Fushi.Core / Fushi.Application)
+        - Cycle scheduling and time zones (Fushi.Host scheduler)
+        - Database, migrations, or caching (Fushi.Infrastructure)
+        - Gateway connection and event dispatch (Fushi.Gateway)
+        - Configuration or startup
+        - Documentation
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: >-
+        The release tag, or the commit SHA if you are running from source.
+      placeholder: 0.1.0, or a12b34c
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: >-
+        Output of `dotnet --info` is ideal. Otherwise: operating system, how
+        the bot is hosted, PostgreSQL version, and whether Redis is enabled.
+      render: text
+    validations:
+      required: false
+
+  - type: input
+    id: timezone
+    attributes:
+      label: Guild time zone
+      description: >-
+        The IANA identifier the affected guild is configured with. Worth filling
+        in even when the bug looks unrelated to time — a surprising number of
+        scheduling problems are daylight saving transitions.
+      placeholder: Europe/Berlin
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: >-
+        The lines around the failure, including any stack trace. Set the log
+        level to Debug first if the default output says nothing useful.
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Before submitting
+      options:
+        - label: I have removed tokens, passwords, and other credentials from everything pasted above.
+          required: true
+        - label: I searched the existing issues and this is not already reported.
+          required: true

@@ -1,0 +1,98 @@
+name: Feature request
+description: Propose a capability Fushi does not have.
+title: "[feature] "
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The most useful proposals start from a situation that is awkward today
+        rather than from a solution. Describing the problem well often changes
+        what the right feature turns out to be.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: >-
+        What is difficult, impossible, or error-prone right now. Concrete
+        beats general: what were you trying to do, and what did you end up
+        doing instead?
+      placeholder: >-
+        Our review panel rotates monthly. Every rotation means running
+        `/voter revoke` and `/voter grant` a dozen times by hand, and it is easy
+        to miss someone, which silently leaves them able to vote.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like to happen
+      description: >-
+        The behaviour you want, described from the outside. If it involves a
+        command, sketch the command and its options.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: >-
+        Including workarounds you are using today, and why they are not enough.
+        If an existing command almost does this, say which one and what is
+        missing.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Configuration (/config)
+        - Voter permissions (/voter)
+        - Cycles and scheduling (/cycle)
+        - Submissions (/submission)
+        - Voting (/vote)
+        - Operations, monitoring, or deployment
+        - Documentation
+        - Something else
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: How much of a change is this
+      description: Your best guess. It is not binding.
+      options:
+        - A new option on an existing command
+        - A new command
+        - A change to how voting or outcomes are calculated
+        - A new entity or a schema change
+        - Not sure
+    validations:
+      required: false
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Effect on existing guilds
+      description: >-
+        Would this change behaviour for a server that is already running
+        Fushi, or is it opt-in? A change to the meaning of an existing outcome
+        or permission needs a migration story, not just an implementation.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and this is not already proposed.
+          required: true
+        - label: I have read docs/domain.md and this does not conflict with a rule stated there, or I have explained why the rule should change.
+          required: false

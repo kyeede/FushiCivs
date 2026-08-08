@@ -1,0 +1,23 @@
+{
+  // Suggested to anyone opening this folder. Nothing here is required to build
+  // from the command line; these are the extensions that make the editor
+  // understand the repository the way CI does.
+  "recommendations": [
+    // C# Dev Kit: solution-aware project system, test explorer, and the
+    // Roslyn-based language service the settings in settings.json configure.
+    "ms-dotnettools.csdevkit",
+    // The C# extension proper. csdevkit depends on it, but naming it keeps the
+    // recommendation meaningful for anyone who declines the Dev Kit licence.
+    "ms-dotnettools.csharp",
+    // Applies .editorconfig to files the C# formatter does not own — shell
+    // scripts, YAML, JSON, Markdown.
+    "editorconfig.editorconfig",
+    // Dockerfile and compose language support for build/Dockerfile and
+    // docker-compose.yml.
+    "ms-azuretools.vscode-docker",
+    // Schema validation for the GitHub workflow and issue-form YAML, which is
+    // otherwise only checked by pushing and waiting.
+    "redhat.vscode-yaml"
+  ],
+  "unwantedRecommendations": []
+}

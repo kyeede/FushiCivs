@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Fushi.Gateway</RootNamespace>
+    <AssemblyName>Fushi.Gateway</AssemblyName>
+    <Description>
+      The connection to Discord: the socket client, its lifetime, the supervision
+      of that connection, and the adapters that read guild and channel data back
+      out of it. How any of it is presented to a user belongs to
+      Fushi.Interactions; nothing here composes an embed or a component.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fushi.Application\Fushi.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The hosting, dependency injection, logging, and options abstractions are
+         part of the shared framework from .NET 10 onwards, so referencing those
+         packages explicitly would earn an NU1510 and buy nothing. Only the
+         Discord client and the options validator are genuinely external. -->
+    <PackageReference Include="Discord.Net.Core" />
+    <PackageReference Include="Discord.Net.Rest" />
+    <PackageReference Include="Discord.Net.WebSocket" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,113 @@
+<Project>
+  <!--
+    Shared MSBuild configuration for every project in the repository.
+    Project-specific settings belong in the .csproj; anything that should hold
+    repository-wide belongs here so that a new project inherits it by existing.
+  -->
+
+  <PropertyGroup Label="Framework">
+    <TargetFramework>net11.0</TargetFramework>
+    <!-- C# 15 (union types, closed hierarchies, extension members) is only
+         reachable through 'preview' until .NET 11 reaches GA. -->
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Globalization">
+    <!--
+      Must stay false. Cycle scheduling resolves the IANA zone "Europe/Berlin"
+      through TimeZoneInfo, which needs the full ICU data set. Turning invariant
+      mode on would make every FindSystemTimeZoneById call throw at runtime.
+    -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Analysis">
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>All</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+    <ReportAnalyzer>false</ReportAnalyzer>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Warnings">
+    <!--
+      Warnings are advisory locally so that a half-finished edit still runs, and
+      fatal in CI so that nothing advisory reaches a shared branch.
+    -->
+    <TreatWarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true'"
+      >true</TreatWarningsAsErrors
+    >
+    <WarningLevel>9999</WarningLevel>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!--
+      AnalysisMode=All is deliberately loud; these are the rules that are noise
+      for this codebase rather than signal. Each exclusion is justified, and the
+      list is meant to shrink, not grow.
+
+      CA1062  Nullable reference types already prove non-nullability at compile
+              time, so a runtime guard on every public parameter is redundant.
+      CA2007  ConfigureAwait(false) matters when a SynchronizationContext
+              exists. A generic host has none, so it is pure ceremony here.
+      CA1054  Discord webhook and avatar URLs travel as strings across the wire
+      CA1056  and converting to System.Uri at every boundary buys nothing.
+      CA1848  Satisfied structurally: all hot-path logging goes through the
+              LoggerMessage source generator in Fushi.Application/Logging.
+      CA1812  DI-instantiated types are never referenced by a constructor call,
+              so the analyzer cannot see that they are live.
+      CA1707  Constants are SCREAMING_SNAKE by the naming rules in
+              .editorconfig, which is a deliberate departure from the framework
+              guidelines. The two rules cannot both be satisfied.
+      CA1000  Static factories on generic types (Result<T>.Success, Page<T>.From)
+              are the modern idiom and match the BCL's own ImmutableArray<T>.Empty
+              and Task<T> patterns.
+      CA1032  Fushi's exceptions carry a structured Error. A parameterless
+              constructor would produce one that reports nothing, which is the
+              state the type exists to prevent.
+      CA2225  Named alternates to the implicit conversions do exist
+              (FromValue, FromError, ToResult); the rule expects specific names
+              rather than checking that an alternate is reachable.
+      CA1040  IEntity is a marker by design, so that infrastructure can discover
+              every entity in one reflection pass without closing the generic.
+      CA1711  Reserves suffixes such as 'Permission' for the Code Access
+              Security types that .NET Core removed. VotingPermission is named
+              after what it is, and the type it would have collided with no
+              longer exists.
+    -->
+    <NoWarn>
+      $(NoWarn);CA1062;CA2007;CA1054;CA1056;CA1848;CA1812;CA1707;CA1000;CA1032;CA2225;CA1040;CA1711
+    </NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Build">
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'"
+      >true</ContinuousIntegrationBuild
+    >
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Identity">
+    <Product>Fushi</Product>
+    <Company>Fushi</Company>
+    <Authors>Fushi Contributors</Authors>
+    <Copyright>Copyright (c) Fushi Contributors</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <VersionPrefix>0.1.0</VersionPrefix>
+  </PropertyGroup>
+
+  <PropertyGroup Label="SourceLink">
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+</Project>

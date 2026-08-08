@@ -1,0 +1,220 @@
+{
+  "version": "2.0.0",
+  // Every .NET task uses the $msCompile problem matcher so that compiler and
+  // analyzer diagnostics land in the Problems panel with working file links.
+  // Analyzers run at AnalysisMode=All, so expect the panel to be busy; those
+  // warnings are advisory locally and fatal in CI.
+  "tasks": [
+    {
+      "label": "build",
+      "detail": "Incremental Debug build of the whole solution.",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["build", "${workspaceFolder}/Fushi.slnx", "-c", "Debug"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "reveal": "silent",
+        "clear": true
+      }
+    },
+    {
+      "label": "rebuild",
+      "detail": "Clean then build. Use when an incremental build produces a result that makes no sense.",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/Fushi.slnx",
+        "-c",
+        "Debug",
+        "--no-incremental"
+      ],
+      "group": "build",
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "reveal": "always",
+        "clear": true
+      }
+    },
+    {
+      "label": "clean",
+      "detail": "Remove build output. UseArtifactsOutput puts it all under artifacts/.",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["clean", "${workspaceFolder}/Fushi.slnx"],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "test",
+      "detail": "Run all tests on Microsoft.Testing.Platform.",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["test", "${workspaceFolder}/Fushi.slnx"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "reveal": "always",
+        "clear": true
+      }
+    },
+    {
+      "label": "test (single class)",
+      // xUnit v3 on Microsoft.Testing.Platform does not accept VSTest's
+      // --filter expressions. --filter-class takes a fully qualified type name
+      // and is the closest equivalent for "run just this file's tests".
+      "detail": "Prompts for a fully qualified test class name and runs only that class.",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "${workspaceFolder}/Fushi.slnx",
+        "--filter-class",
+        "${input:testClass}"
+      ],
+      "group": "test",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "format",
+      "detail": "Apply .editorconfig formatting in place.",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["format", "${workspaceFolder}/Fushi.slnx"],
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "format (verify)",
+      "detail": "Report formatting violations without rewriting anything. This is the CI gate.",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "format",
+        "${workspaceFolder}/Fushi.slnx",
+        "--verify-no-changes"
+      ],
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "watch",
+      "detail": "Run Fushi.Host with hot reload. Needs .env exported into the shell first.",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "watch",
+        "--project",
+        "${workspaceFolder}/src/Fushi.Host/Fushi.Host.csproj",
+        "run"
+      ],
+      "isBackground": true,
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "compose: up",
+      "detail": "Start PostgreSQL in the background.",
+      "type": "shell",
+      "command": "docker",
+      "args": ["compose", "up", "--detach", "--wait"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "compose: up (cache + tools)",
+      "detail": "Start PostgreSQL, Redis, and Adminer.",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "--profile",
+        "cache",
+        "--profile",
+        "tools",
+        "up",
+        "--detach",
+        "--wait"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "compose: down",
+      // Without --volumes, so stopping the stack does not throw away the
+      // database. Delete the named volume by hand when a reset is what is
+      // actually wanted.
+      "detail": "Stop the stack, keeping the database volume.",
+      "type": "shell",
+      "command": "docker",
+      "args": ["compose", "--profile", "cache", "--profile", "tools", "down"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "compose: logs",
+      "detail": "Follow the stack's logs.",
+      "type": "shell",
+      "command": "docker",
+      "args": ["compose", "logs", "--follow", "--tail", "100"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "migrate: update",
+      "detail": "Apply all pending EF Core migrations. Requires ConnectionStrings__Database.",
+      "type": "shell",
+      "command": "./build/migrate.sh",
+      "args": ["update"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "testClass",
+      "type": "promptString",
+      "description": "Fully qualified test class name, e.g. Fushi.Core.Tests.Identifiers.ShortCodeTests"
+    }
+  ]
+}

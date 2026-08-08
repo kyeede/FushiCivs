@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Fushi.Infrastructure</RootNamespace>
+    <AssemblyName>Fushi.Infrastructure</AssemblyName>
+    <Description>
+      PostgreSQL persistence, caching, and the concrete implementations of the
+      outward-facing interfaces the application layer declares. This is the only
+      project that knows Entity Framework exists.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fushi.Application\Fushi.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+    <!-- Binding configuration to an options class is not part of the shared
+         framework: the binder and the OptionsBuilder.Bind overload each live in
+         their own package. -->
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- `PrivateAssets=all` stops the design-time package flowing to anything that
+         references this project, which is the point of isolating it here. Unlike
+         the EF template's default it does keep `compile`, because
+         DesignTimeDbContextFactory implements an interface the package defines and
+         cannot be written without it. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,46 @@
+<Solution>
+
+  <Folder Name="/solution/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="nuget.config" />
+    <File Path="docker-compose.yml" />
+    <File Path="README.md" />
+    <File Path="CHANGELOG.md" />
+  </Folder>
+
+  <Folder Name="/docs/">
+    <File Path="docs/architecture.md" />
+    <File Path="docs/configuration.md" />
+    <File Path="docs/domain.md" />
+    <File Path="docs/interactions.md" />
+    <File Path="docs/operations.md" />
+  </Folder>
+
+  <Folder Name="/build/">
+    <File Path="build/Dockerfile" />
+    <File Path="build/build.sh" />
+    <File Path="build/migrate.sh" />
+  </Folder>
+
+  <Folder Name="/src/">
+    <Project Path="src/Fushi.Core/Fushi.Core.csproj" />
+    <Project Path="src/Fushi.Application/Fushi.Application.csproj" />
+    <Project Path="src/Fushi.Infrastructure/Fushi.Infrastructure.csproj" />
+    <Project Path="src/Fushi.Interactions/Fushi.Interactions.csproj" />
+    <Project Path="src/Fushi.Gateway/Fushi.Gateway.csproj" />
+    <Project Path="src/Fushi.Host/Fushi.Host.csproj" />
+  </Folder>
+
+  <Folder Name="/tests/">
+    <Project Path="tests/Fushi.Core.Tests/Fushi.Core.Tests.csproj" />
+    <Project Path="tests/Fushi.Application.Tests/Fushi.Application.Tests.csproj" />
+    <Project Path="tests/Fushi.Infrastructure.Tests/Fushi.Infrastructure.Tests.csproj" />
+  </Folder>
+
+</Solution>

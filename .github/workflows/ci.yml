@@ -1,0 +1,148 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  # Lets a maintainer re-run the pipeline without an empty commit.
+  workflow_dispatch:
+
+# Least privilege at the workflow level. No job here writes to the repository,
+# publishes a package, or comments on a pull request, so read access to the
+# contents is the entire requirement. A job that needs more should raise its own
+# `permissions:` block rather than widening this one.
+permissions:
+  contents: read
+
+# One run per branch or pull request. Pushing again while a run is in flight
+# cancels the old one, because its result describes code nobody will merge.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keeps the package cache inside the workspace so actions/cache can see it.
+  # The default location is outside the workspace and varies by runner image.
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # The runner sets GITHUB_ACTIONS=true, which Directory.Build.props turns
+    # into ContinuousIntegrationBuild=true, which turns on
+    # TreatWarningsAsErrors. Analyzers run at AnalysisMode=All, so a warning
+    # that is merely advisory on a developer's machine fails the build here.
+    # That asymmetry is deliberate: local work stays runnable mid-edit, and
+    # nothing advisory reaches a shared branch.
+
+    services:
+      # Available at localhost:5432 for integration tests that expect a
+      # pre-provisioned database. Tests that use Testcontainers start their own
+      # container instead and ignore this one; both approaches coexist because
+      # a service container starts once per job and is faster, while
+      # Testcontainers gives a test a database nothing else has touched.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: fushi_test
+          POSTGRES_USER: fushi
+          POSTGRES_PASSWORD: fushi_test
+          TZ: UTC
+          PGTZ: UTC
+        ports:
+          - 5432:5432
+        # Without a health check the job races the database: the container
+        # exists long before PostgreSQL is accepting connections.
+        options: >-
+          --health-cmd "pg_isready -U fushi -d fushi_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 20s
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          # Reads the exact preview SDK band from global.json rather than
+          # repeating the version here, where the two could drift apart.
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          # Central Package Management means Directory.Packages.props is the
+          # complete list of versions for the repository, so it is the only
+          # file whose change can invalidate the cache.
+          key: ${{ runner.os }}-nuget-${{ hashFiles('Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore Fushi.slnx
+
+      - name: Verify formatting
+        # Runs before the build so a purely cosmetic failure is reported in
+        # seconds instead of after a full compile.
+        run: dotnet format Fushi.slnx --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build Fushi.slnx --configuration Release --no-restore
+
+      - name: Test
+        # Microsoft.Testing.Platform runner, selected by global.json. VSTest
+        # `--filter` expressions are not available here; the equivalents are
+        # --filter-class, --filter-method, --filter-trait, and --filter-query.
+        env:
+          # Consumed by integration tests that read a connection string rather
+          # than starting their own container.
+          ConnectionStrings__Database: >-
+            Host=localhost;Port=5432;Database=fushi_test;Username=fushi;Password=fushi_test
+          # Redis is not provisioned for CI. An empty value is the documented
+          # way to run with the in-memory cache tier alone, so this also
+          # exercises the no-L2 configuration path.
+          ConnectionStrings__Redis: ""
+          DOTNET_ENVIRONMENT: Development
+        run: |
+          dotnet test Fushi.slnx \
+            --configuration Release \
+            --no-restore \
+            --results-directory "${{ github.workspace }}/artifacts/test-results"
+
+      - name: Upload test results
+        # if: always() so a failing test run still produces the artifact that
+        # explains why it failed. Without it the interesting case is the one
+        # that uploads nothing.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: artifacts/test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          # Whatever the coverage collector produced, in whichever format it
+          # was configured for. Kept as a separate artifact from the test
+          # results so a coverage tool can consume it without unpacking logs.
+          path: |
+            artifacts/test-results/**/*.cobertura.xml
+            artifacts/test-results/**/*.coverage
+            artifacts/coverage/
+          if-no-files-found: ignore
+          retention-days: 14

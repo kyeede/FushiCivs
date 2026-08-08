@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Fushi.Application</RootNamespace>
+    <AssemblyName>Fushi.Application</AssemblyName>
+    <Description>
+      Commands, queries, and handlers for Fushi. This layer decides what the bot
+      does; it holds no knowledge of Discord.Net, of Entity Framework, or of any
+      other outward dependency. Everything it needs from the outside is declared
+      as an interface under Abstractions and supplied at composition time.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fushi.Core\Fushi.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The dependency injection and logging abstractions are part of the shared
+         framework from .NET 10 onwards, so referencing the packages explicitly
+         is redundant (NU1510). They are still only the abstractions: nothing
+         here depends on a container implementation or a logging sink. -->
+    <PackageReference Include="FluentValidation" />
+  </ItemGroup>
+
+</Project>

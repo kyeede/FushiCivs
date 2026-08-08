@@ -1,0 +1,26 @@
+# Only the two forms in this directory may be used to open an issue. Free-form
+# issues are disabled because the fields the forms ask for — version, guild time
+# zone, exact command invoked — are the ones that otherwise have to be requested
+# in a comment before triage can start.
+blank_issues_enabled: false
+
+contact_links:
+  - name: Documentation
+    url: https://github.com/fushi/fushi/tree/master/docs
+    about: >-
+      Configuration keys, the command reference, the voting rules, and
+      operational troubleshooting. Most "is this a bug?" questions are answered
+      in docs/operations.md.
+
+  - name: Questions and discussion
+    url: https://github.com/fushi/fushi/discussions
+    about: >-
+      Use Discussions for "how do I", "is this the right approach", and
+      anything you are not yet sure is a defect.
+
+  - name: Security vulnerabilities
+    url: https://github.com/fushi/fushi/security/advisories/new
+    about: >-
+      Report privately through a security advisory, never as a public issue.
+      A bot token compromise or a permission bypass affects every running
+      instance the moment it is described in public.

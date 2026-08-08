@@ -1,0 +1,57 @@
+<Project>
+  <!--
+    Convention-driven configuration applied after each project file is read, so
+    that decisions can key off properties the project itself declares.
+  -->
+
+  <!--
+    Test projects are identified by location rather than by a per-project flag:
+    anything under tests/ is a test project, and forgetting the flag is not a
+    failure mode that can occur.
+  -->
+  <PropertyGroup>
+    <IsTestProject
+      Condition="'$(IsTestProject)' == '' AND $(MSBuildProjectDirectory.Contains('tests'))"
+      >true</IsTestProject
+    >
+    <IsTestProject Condition="'$(IsTestProject)' == ''">false</IsTestProject>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+    <!-- Microsoft.Testing.Platform runs tests as a real process, not a hosted
+         library, so test assemblies must be executables. -->
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+
+    <!-- Documentation and naming rules describe a public API surface. Test
+         assemblies do not have one, and enforcing them there only produces
+         friction without protecting a consumer. -->
+    <NoWarn>$(NoWarn);CS1591;CA1707;CA2234;CA1861;CA1515</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <PackageReference Include="xunit.v3.mtp-v2" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="NSubstitute.Analyzers.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <Using Include="Xunit" />
+    <Using Include="Shouldly" />
+  </ItemGroup>
+
+  <!--
+    InternalsVisibleTo by convention: Fushi.Application is testable from
+    Fushi.Application.Tests without any project opting in by hand.
+  -->
+  <ItemGroup Condition="'$(IsTestProject)' != 'true' AND '$(AssemblyName)' != ''">
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+  </ItemGroup>
+</Project>

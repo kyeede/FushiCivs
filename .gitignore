@@ -1,0 +1,70 @@
+# ── Build output ─────────────────────────────────────────────────────────────
+# UseArtifactsOutput redirects every project's output into one tree, so the
+# per-project bin/ and obj/ patterns below only catch tooling that ignores it.
+artifacts/
+[Bb]in/
+[Oo]bj/
+out/
+publish/
+[Ll]og/
+[Ll]ogs/
+
+# ── .NET SDK ─────────────────────────────────────────────────────────────────
+*.user
+*.pubxml.user
+project.lock.json
+.dotnet/
+msbuild.log
+msbuild.binlog
+*.binlog
+
+# ── NuGet ────────────────────────────────────────────────────────────────────
+*.nupkg
+*.snupkg
+.nuget/
+**/packages/*
+!**/packages/build/
+
+# ── IDEs ─────────────────────────────────────────────────────────────────────
+.vs/
+*.suo
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# .vscode/ is intentionally tracked: the debug launch profiles, task
+# definitions, and analyzer settings there are part of the project setup rather
+# than personal preference. Only the machine-local files are excluded.
+.vscode/*.log
+.vscode/.ropeproject/
+
+# ── Test results & coverage ──────────────────────────────────────────────────
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+coverage.*.xml
+BenchmarkDotNet.Artifacts/
+*.received.*
+
+# ── Secrets — never commit ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+appsettings.*.Local.json
+secrets.json
+*.pfx
+*.snk
+*.pem
+*.key
+
+# ── Local infrastructure state ───────────────────────────────────────────────
+.volumes/
+docker-compose.override.yml
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
