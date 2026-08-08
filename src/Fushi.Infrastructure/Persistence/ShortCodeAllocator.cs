@@ -5,7 +5,7 @@ using Fushi.Core.Identifiers;
 
 using Microsoft.EntityFrameworkCore;
 
-namespace Fushi.Infrastructure.Persistence.Repositories;
+namespace Fushi.Infrastructure.Persistence;
 
 /// <summary>
 /// Generates short codes that no existing row in the guild already uses.

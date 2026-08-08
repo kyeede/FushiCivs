@@ -1,7 +1,7 @@
 using Fushi.Application.Abstractions.Persistence;
 using Fushi.Core.Entities.Audits;
 
-namespace Fushi.Infrastructure.Persistence.Repositories;
+namespace Fushi.Infrastructure.Persistence;
 
 /// <summary>
 /// Stages audit entries for insertion alongside the change they describe.
