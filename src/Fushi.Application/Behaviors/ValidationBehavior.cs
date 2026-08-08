@@ -1,7 +1,9 @@
+using System.Reflection;
+
 using Fushi.Application.Abstractions.Messaging;
-using Fushi.Application.Dispatching;
 using Fushi.Application.Logging;
 using Fushi.Core.Errors;
+using Fushi.Core.Results;
 
 using FluentValidation;
 using FluentValidation.Results;
@@ -46,6 +48,12 @@ public sealed class ValidationBehavior<TRequest, TResponse>(
 
     private static readonly string RequestName = typeof(TRequest).Name;
 
+    // TResponse is a type parameter here, so refusing a request means producing a
+    // failure of a type this method cannot name: it is either Result or Result<T>,
+    // and only the latter takes a type argument. The reflection is done once for
+    // the closed behaviour and reduced to a delegate.
+    private static readonly Lazy<Func<Error, object>> FailureFactory = new(BuildFailureFactory);
+
     /// <inheritdoc/>
     public async Task<TResponse> HandleAsync(
         TRequest request,
@@ -86,6 +94,38 @@ public sealed class ValidationBehavior<TRequest, TResponse>(
 
         PipelineLog.ValidationRejected(logger, RequestName, description);
 
-        return ResultFactory.Failure<TResponse>(Error.Validation(FAILURE_CODE, description));
+        return Failure(Error.Validation(FAILURE_CODE, description));
+    }
+
+    private static TResponse Failure(Error error)
+    {
+        if (typeof(TResponse) == typeof(Result))
+        {
+            return (TResponse)(object)Result.Failure(error);
+        }
+
+        return (TResponse)FailureFactory.Value(error);
+    }
+
+    private static Func<Error, object> BuildFailureFactory()
+    {
+        if (!typeof(TResponse).IsGenericType
+            || typeof(TResponse).GetGenericTypeDefinition() != typeof(Result<>))
+        {
+            throw new InvalidOperationException(
+                $"'{typeof(TResponse)}' cannot represent a failure. A request must respond with "
+                + $"{nameof(Result)} or {nameof(Result)}<T>.");
+        }
+
+        MethodInfo method = typeof(TResponse).GetMethod(
+            nameof(Result<>.Failure),
+            BindingFlags.Public | BindingFlags.Static,
+            [typeof(Error)])
+            ?? throw new InvalidOperationException(
+                $"'{typeof(TResponse)}' does not expose a static Failure(Error) method.");
+
+        // Result<T> is a reference type, so the delegate's object return type is
+        // reference-compatible with the method's and no wrapper is needed.
+        return method.CreateDelegate<Func<Error, object>>();
     }
 }
