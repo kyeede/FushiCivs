@@ -51,7 +51,8 @@ internal sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<F
             new DbContextOptionsBuilder<FushiDbContext>()
                 .UseNpgsql(
                     connection,
-                    npgsql => npgsql.MigrationsHistoryTable("__migrations_history"))
+                    npgsql => npgsql.MigrationsHistoryTable(
+                        FushiDbContext.MIGRATIONS_HISTORY_TABLE))
                 .Options;
 
         return new FushiDbContext(options);

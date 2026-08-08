@@ -36,6 +36,17 @@ public sealed class FushiDbContext(DbContextOptions<FushiDbContext> options)
     : DbContext(options)
 {
     /// <summary>
+    /// The table Entity Framework records applied migrations in.
+    /// </summary>
+    /// <remarks>
+    /// Named in one place because the runtime and the <c>dotnet ef</c> tooling
+    /// configure the provider separately. Two spellings would leave each of them
+    /// reading a different history and re-applying migrations the other had
+    /// already run.
+    /// </remarks>
+    public const string MIGRATIONS_HISTORY_TABLE = "__migrations";
+
+    /// <summary>
     /// Gets the per-guild configuration.
     /// </summary>
     public DbSet<Guild> Guilds => Set<Guild>();

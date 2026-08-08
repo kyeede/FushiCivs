@@ -91,7 +91,7 @@ public static class InfrastructureServiceCollectionExtensions
                     TimeSpan.FromSeconds(options.MaxRetryDelaySeconds),
                     errorCodesToAdd: null);
 
-                npgsql.MigrationsHistoryTable("__migrations");
+                npgsql.MigrationsHistoryTable(FushiDbContext.MIGRATIONS_HISTORY_TABLE);
             });
 
             builder.EnableSensitiveDataLogging(options.EnableSensitiveDataLogging);
