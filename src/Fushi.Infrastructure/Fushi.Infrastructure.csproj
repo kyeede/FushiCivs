@@ -4,7 +4,7 @@
     <RootNamespace>Fushi.Infrastructure</RootNamespace>
     <AssemblyName>Fushi.Infrastructure</AssemblyName>
     <Description>
-      PostgreSQL persistence, caching, and the concrete implementations of the
+      PostgreSQL persistence and the concrete implementations of the
       outward-facing interfaces the application layer declares. This is the only
       project that knows Entity Framework exists.
     </Description>
@@ -18,8 +18,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
     <!-- Binding configuration to an options class is not part of the shared
          framework: the binder and the OptionsBuilder.Bind overload each live in
          their own package. -->

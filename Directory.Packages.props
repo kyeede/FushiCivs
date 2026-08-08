@@ -100,23 +100,6 @@
     />
   </ItemGroup>
 
-  <ItemGroup Label="Caching">
-    <!-- These two are deliberately on different versions. HybridCache ships out of
-         band on the servicing line and has no preview build, whereas the Redis
-         distributed cache ships with the framework and so follows the SDK band like
-         the rest of Microsoft.Extensions.*. Aligning them would mean asking for a
-         package that was never published. -->
-    <PackageVersion
-      Include="Microsoft.Extensions.Caching.Hybrid"
-      Version="$(ExtensionsServicingVersion)"
-    />
-    <PackageVersion
-      Include="Microsoft.Extensions.Caching.StackExchangeRedis"
-      Version="$(DotNetPreviewVersion)"
-    />
-    <PackageVersion Include="StackExchange.Redis" Version="3.1.13" />
-  </ItemGroup>
-
   <ItemGroup Label="Resilience">
     <PackageVersion
       Include="Microsoft.Extensions.Http.Resilience"

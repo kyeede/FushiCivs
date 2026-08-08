@@ -13,12 +13,12 @@ using Microsoft.Extensions.Options;
 namespace Fushi.Infrastructure;
 
 /// <summary>
-/// Registers persistence and caching with a dependency injection container.
+/// Registers persistence with a dependency injection container.
 /// </summary>
 public static class InfrastructureServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds the database session, the repositories, and the cache.
+    /// Adds the database session and the repositories.
     /// </summary>
     /// <remarks>
     /// Options are validated at startup rather than on first use, so a missing
@@ -43,7 +43,6 @@ public static class InfrastructureServiceCollectionExtensions
 
         AddOptions(services, configuration);
         AddPersistence(services);
-        AddCaching(services, configuration);
 
         // TimeProvider is how every handler reads the clock. Registered here rather
         // than in the application layer so that a test can substitute a fake without
@@ -67,18 +66,6 @@ public static class InfrastructureServiceCollectionExtensions
                 {
                     options.ConnectionString =
                         configuration.GetConnectionString("Database") ?? string.Empty;
-                }
-            })
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        services.AddOptions<CacheOptions>()
-            .Bind(configuration.GetSection(CacheOptions.SECTION))
-            .PostConfigure(options =>
-            {
-                if (string.IsNullOrWhiteSpace(options.RedisConnectionString))
-                {
-                    options.RedisConnectionString = configuration.GetConnectionString("Redis");
                 }
             })
             .ValidateDataAnnotations()
@@ -117,38 +104,5 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ISubmissionRepository, SubmissionRepository>();
         services.AddScoped<IAuditWriter, AuditWriter>();
         services.AddScoped<IShortCodeAllocator, ShortCodeAllocator>();
-    }
-
-    private static void AddCaching(IServiceCollection services, IConfiguration configuration)
-    {
-        CacheOptions options = new();
-        configuration.GetSection(CacheOptions.SECTION).Bind(options);
-        options.RedisConnectionString ??= configuration.GetConnectionString("Redis");
-
-        if (options.UsesRedis)
-        {
-            // Registered before the hybrid cache so that it is picked up as the
-            // distributed tier. Without it, HybridCache runs with its in-memory tier
-            // alone, which is exactly the intended behaviour when Redis is absent.
-            services.AddStackExchangeRedisCache(redis =>
-            {
-                redis.Configuration = options.RedisConnectionString;
-                redis.InstanceName = "fushi:";
-            });
-        }
-
-#pragma warning disable EXTEXP0018 // HybridCache is still marked experimental; the
-        // API is what Microsoft recommends over the older IDistributedCache pattern,
-        // and the suppression is scoped to this call rather than the whole project.
-        services.AddHybridCache(hybrid =>
-        {
-            hybrid.MaximumPayloadBytes = options.MaximumPayloadBytes;
-            hybrid.DefaultEntryOptions = new()
-            {
-                LocalCacheExpiration = TimeSpan.FromSeconds(options.LocalExpirationSeconds),
-                Expiration = TimeSpan.FromSeconds(options.DistributedExpirationSeconds),
-            };
-        });
-#pragma warning restore EXTEXP0018
     }
 }
