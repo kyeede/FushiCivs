@@ -19,9 +19,8 @@ namespace Fushi.Infrastructure.Persistence.Repositories;
 /// <br/>
 /// So each candidate is checked before use. The check is not a guarantee on its own:
 /// two allocations running concurrently can both find the same code free before
-/// either inserts. The unique index is what actually decides, and the retry inside
-/// <see cref="IUnitOfWork.ExecuteInTransactionAsync"/> is what recovers. This exists
-/// so that path is exercised roughly never rather than routinely.
+/// either inserts. The unique index is what actually decides; callers that need to
+/// recover from a collision must retry the surrounding command.
 /// </remarks>
 /// <param name="context">The database session.</param>
 internal sealed class ShortCodeAllocator(FushiDbContext context) : IShortCodeAllocator

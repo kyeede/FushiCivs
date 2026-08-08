@@ -97,9 +97,8 @@ public static class InfrastructureServiceCollectionExtensions
             {
                 npgsql.CommandTimeout(options.CommandTimeoutSeconds);
 
-                // Enabling retries also switches on the execution strategy that
-                // UnitOfWork.ExecuteInTransactionAsync relies on to recover from a
-                // short-code collision.
+                // Transient faults (network blips, brief unavailability) are
+                // retried by the provider rather than surfaced as command failures.
                 npgsql.EnableRetryOnFailure(
                     options.MaxRetryCount,
                     TimeSpan.FromSeconds(options.MaxRetryDelaySeconds),
