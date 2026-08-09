@@ -24,8 +24,19 @@ the outcome is ordered.
 
 ## [Unreleased]
 
-The initial architecture. Nothing has been released yet, so everything below is
-first-time work rather than a change to previous behaviour.
+The initial architecture. Nothing has been released yet; entries under Fixed are
+corrections to behaviour already described below.
+
+### Fixed
+
+- **Cycle open failed to persist against PostgreSQL** ([`c7f00db`](https://github.com/kyeede/FushiCivs/commit/c7f00db4b7423e0868321974e4184eec3e9eb0b5)): opening a
+  cycle threw `Cannot write DateTimeOffset with Offset=… to PostgreSQL type
+  'timestamp with time zone'` because schedule windows kept the guild’s local
+  offset (e.g. `+02:00` for `Europe/Berlin` in summer). Npgsql only accepts UTC
+  for `timestamptz`. Resolved wall-clock times in `CycleSchedule` and manual
+  `ImmediateWindow` are now converted to UTC before use, and an EF Core value
+  converter normalises any remaining non-UTC `DateTimeOffset` on write. DST
+  behaviour is unchanged; only the stored offset form is.
 
 ### Added
 

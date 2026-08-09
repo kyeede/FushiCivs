@@ -89,11 +89,18 @@ public sealed class FushiDbContext(DbContextOptions<FushiDbContext> options)
 
         configurationBuilder.Properties<ulong>().HaveConversion<SnowflakeConverter>();
 
-        // Every timestamp in the domain is UTC by construction, because handlers
-        // read the clock through TimeProvider.GetUtcNow. Declaring the store type
-        // makes that explicit in the schema and lets Npgsql reject a non-UTC value
-        // outright instead of silently shifting it.
-        configurationBuilder.Properties<DateTimeOffset>().HaveColumnType("timestamptz");
+        // Every timestamp in the domain is UTC by construction: handlers read the
+        // clock through TimeProvider.GetUtcNow, and schedule resolution converts
+        // wall-clock times to UTC before they leave CycleSchedule. The converter
+        // normalises anything that still carries a local offset so Npgsql never
+        // rejects a write against timestamptz.
+        configurationBuilder.Properties<DateTimeOffset>()
+            .HaveConversion<UtcDateTimeOffsetConverter>()
+            .HaveColumnType("timestamptz");
+
+        configurationBuilder.Properties<DateTimeOffset?>()
+            .HaveConversion<NullableUtcDateTimeOffsetConverter>()
+            .HaveColumnType("timestamptz");
     }
 
     /// <inheritdoc/>

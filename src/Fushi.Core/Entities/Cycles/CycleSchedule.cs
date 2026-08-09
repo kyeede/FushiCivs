@@ -307,10 +307,13 @@ public readonly record struct CycleSchedule
             TimeSpan[] offsets = zone.GetAmbiguousTimeOffsets(local);
             TimeSpan chosen = preferEarliest ? offsets.Max() : offsets.Min();
 
-            return new DateTimeOffset(local, chosen);
+            return new DateTimeOffset(local, chosen).ToUniversalTime();
         }
 
-        return new DateTimeOffset(local, zone.GetUtcOffset(local));
+        // UTC rather than the zone's wall-clock offset. Absolute instants are what
+        // the scheduler compares against TimeProvider.GetUtcNow, and what Npgsql
+        // will accept for timestamptz — a non-zero offset is rejected on write.
+        return new DateTimeOffset(local, zone.GetUtcOffset(local)).ToUniversalTime();
     }
 
     /// <inheritdoc/>

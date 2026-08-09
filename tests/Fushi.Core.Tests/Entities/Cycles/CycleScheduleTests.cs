@@ -134,12 +134,11 @@ public sealed class CycleScheduleTests
         window.Duration.ShouldBe(TimeSpan.FromHours(12));
     }
 
-    // The most valuable assertion in the suite. Europe/Berlin sits on UTC+1 in
-    // winter and UTC+2 in summer, so a schedule stored as a fixed offset would
-    // silently shift every winter cycle by an hour, and nobody would notice
-    // until a vote closed early.
+    // Summer 10:00 Berlin is 08:00 UTC; winter 10:00 Berlin is 09:00 UTC. A
+    // schedule stored as a fixed offset would use the same UTC hour year-round
+    // and silently shift every winter cycle by an hour.
     [Fact]
-    public void TheUtcOffsetDiffersBetweenASummerWindowAndAWinterWindow()
+    public void TheUtcInstantOfTheSameWallClockDiffersBetweenSummerAndWinter()
     {
         SkipWithoutBerlin();
 
@@ -148,9 +147,9 @@ public sealed class CycleScheduleTests
         CycleWindow summer = Resolved(schedule.WindowFor(new DateOnly(2026, 7, 4)));
         CycleWindow winter = Resolved(schedule.WindowFor(new DateOnly(2026, 1, 3)));
 
-        summer.OpensAt.Offset.ShouldBe(TimeSpan.FromHours(2));
-        winter.OpensAt.Offset.ShouldBe(TimeSpan.FromHours(1));
-        summer.OpensAt.Offset.ShouldNotBe(winter.OpensAt.Offset);
+        summer.OpensAt.ShouldBe(new DateTimeOffset(2026, 7, 4, 8, 0, 0, TimeSpan.Zero));
+        winter.OpensAt.ShouldBe(new DateTimeOffset(2026, 1, 3, 9, 0, 0, TimeSpan.Zero));
+        summer.OpensAt.UtcDateTime.TimeOfDay.ShouldNotBe(winter.OpensAt.UtcDateTime.TimeOfDay);
     }
 
     // The clocks move at 02:00 local on the last Sunday of March and October, so
@@ -166,7 +165,8 @@ public sealed class CycleScheduleTests
         CycleWindow window = Resolved(new CycleSchedule(CycleDays.Daily).WindowFor(new DateOnly(year, month, day)));
 
         window.Duration.ShouldBe(TimeSpan.FromHours(12));
-        window.OpensAt.Offset.ShouldBe(window.ClosesAt.Offset);
+        window.OpensAt.Offset.ShouldBe(TimeSpan.Zero);
+        window.ClosesAt.Offset.ShouldBe(TimeSpan.Zero);
     }
 
     // A window straddling the spring-forward transition is an hour shorter than
@@ -180,8 +180,9 @@ public sealed class CycleScheduleTests
 
         CycleWindow window = Resolved(schedule.WindowFor(new DateOnly(2026, 3, 29)));
 
-        window.OpensAt.ShouldBe(new DateTimeOffset(2026, 3, 29, 1, 0, 0, TimeSpan.FromHours(1)));
-        window.ClosesAt.ShouldBe(new DateTimeOffset(2026, 3, 29, 5, 0, 0, TimeSpan.FromHours(2)));
+        // 01:00 CET → 00:00 UTC; 05:00 CEST → 03:00 UTC.
+        window.OpensAt.ShouldBe(new DateTimeOffset(2026, 3, 29, 0, 0, 0, TimeSpan.Zero));
+        window.ClosesAt.ShouldBe(new DateTimeOffset(2026, 3, 29, 3, 0, 0, TimeSpan.Zero));
         window.Duration.ShouldBe(TimeSpan.FromHours(3));
     }
 
@@ -196,8 +197,9 @@ public sealed class CycleScheduleTests
 
         CycleWindow window = Resolved(schedule.WindowFor(new DateOnly(2026, 10, 25)));
 
-        window.OpensAt.ShouldBe(new DateTimeOffset(2026, 10, 25, 1, 0, 0, TimeSpan.FromHours(2)));
-        window.ClosesAt.ShouldBe(new DateTimeOffset(2026, 10, 25, 5, 0, 0, TimeSpan.FromHours(1)));
+        // 01:00 CEST → 23:00 UTC on the 24th; 05:00 CET → 04:00 UTC on the 25th.
+        window.OpensAt.ShouldBe(new DateTimeOffset(2026, 10, 24, 23, 0, 0, TimeSpan.Zero));
+        window.ClosesAt.ShouldBe(new DateTimeOffset(2026, 10, 25, 4, 0, 0, TimeSpan.Zero));
         window.Duration.ShouldBe(TimeSpan.FromHours(5));
     }
 
@@ -213,7 +215,8 @@ public sealed class CycleScheduleTests
 
         CycleWindow window = Resolved(schedule.WindowFor(new DateOnly(2026, 3, 29)));
 
-        window.OpensAt.ShouldBe(new DateTimeOffset(2026, 3, 29, 3, 0, 0, TimeSpan.FromHours(2)));
+        // 03:00 CEST → 01:00 UTC.
+        window.OpensAt.ShouldBe(new DateTimeOffset(2026, 3, 29, 1, 0, 0, TimeSpan.Zero));
     }
 
     // 02:30 happens twice on the day the clocks go back. Opening takes the
@@ -227,7 +230,7 @@ public sealed class CycleScheduleTests
 
         CycleWindow window = Resolved(schedule.WindowFor(new DateOnly(2026, 10, 25)));
 
-        window.OpensAt.Offset.ShouldBe(TimeSpan.FromHours(2));
+        window.OpensAt.Offset.ShouldBe(TimeSpan.Zero);
         window.OpensAt.ShouldBe(new DateTimeOffset(2026, 10, 25, 0, 30, 0, TimeSpan.Zero));
     }
 
@@ -243,7 +246,7 @@ public sealed class CycleScheduleTests
 
         CycleWindow window = Resolved(schedule.WindowFor(new DateOnly(2026, 10, 24)));
 
-        window.ClosesAt.Offset.ShouldBe(TimeSpan.FromHours(1));
+        window.ClosesAt.Offset.ShouldBe(TimeSpan.Zero);
         window.ClosesAt.ShouldBe(new DateTimeOffset(2026, 10, 25, 1, 30, 0, TimeSpan.Zero));
         window.Duration.ShouldBe(TimeSpan.FromHours(5.5));
     }

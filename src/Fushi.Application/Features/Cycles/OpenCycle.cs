@@ -333,9 +333,9 @@ internal sealed class OpenCycleHandler(
             localClose = localClose.AddDays(1);
         }
 
-        var closes = new DateTimeOffset(localClose, zone.GetUtcOffset(localClose));
+        var closes = new DateTimeOffset(localClose, zone.GetUtcOffset(localClose)).ToUniversalTime();
 
-        return new CycleWindow(today, now, closes);
+        return new CycleWindow(today, now.ToUniversalTime(), closes);
     }
 
     private static string Describe(Cycle cycle, int submissionCount, bool bypassed)
