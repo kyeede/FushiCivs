@@ -29,7 +29,7 @@ corrections to behaviour already described below.
 
 ### Fixed
 
-- **Cycle open failed to persist against PostgreSQL** ([`c7f00db`](https://github.com/kyeede/FushiCivs/commit/c7f00db4b7423e0868321974e4184eec3e9eb0b5)): opening a
+- **Cycle open failed to persist against PostgreSQL** ([`a4168d1`](https://github.com/kyeede/FushiCivs/commit/a4168d1)): opening a
   cycle threw `Cannot write DateTimeOffset with Offset=… to PostgreSQL type
   'timestamp with time zone'` because schedule windows kept the guild’s local
   offset (e.g. `+02:00` for `Europe/Berlin` in summer). Npgsql only accepts UTC
