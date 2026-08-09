@@ -79,7 +79,7 @@ services:
       - fushi
 
   adminer:
-    image: adminer:4
+    image: adminer:5
     container_name: fushi-adminer
     restart: unless-stopped
     profiles: [tools]
