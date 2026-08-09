@@ -27,10 +27,7 @@ public sealed class VotingPolicyDefaultTests
     }
 
     [Fact]
-    public void TheDefaultPolicyUsesTheDocumentedApprovalRatio()
-    {
-        VotingPolicy.Default.ApprovalRatio.ShouldBe(VotingPolicy.DEFAULT_APPROVAL_RATIO);
-    }
+    public void TheDefaultPolicyUsesTheDocumentedApprovalRatio() => VotingPolicy.Default.ApprovalRatio.ShouldBe(VotingPolicy.DEFAULT_APPROVAL_RATIO);
 
     // Booleans cannot be repaired by a fallback in the getter: false is a real
     // setting, so "off" and "never set" are indistinguishable after the fact.

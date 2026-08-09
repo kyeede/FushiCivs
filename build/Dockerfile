@@ -52,10 +52,12 @@ RUN --mount=type=cache,target=/root/.nuget/packages \
         --output /app/publish
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
-# runtime, not aspnet: Fushi is a gateway client driven by a WebSocket, not a
-# web server. The Ubuntu-based default tag is chosen deliberately over the
-# Alpine and distroless variants, for the globalization reason below.
-FROM mcr.microsoft.com/dotnet/runtime:11.0-preview AS final
+# aspnet rather than runtime: the host is a Discord gateway client, but it still
+# boots through WebApplication and maps /health/* on Kestrel, which needs the
+# Microsoft.AspNetCore.App shared framework. The Ubuntu-based default tag is
+# chosen deliberately over Alpine and distroless, for the globalization reason
+# below.
+FROM mcr.microsoft.com/dotnet/aspnet:11.0-preview AS final
 
 # ── Globalization: do not "optimise" this away ───────────────────────────────
 # DOTNET_SYSTEM_GLOBALIZATION_INVARIANT is deliberately NOT set, and

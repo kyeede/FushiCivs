@@ -52,6 +52,7 @@ BenchmarkDotNet.Artifacts/
 .env
 .env.*
 !.env.example
+!.env.production.example
 appsettings.Local.json
 appsettings.*.Local.json
 secrets.json
@@ -59,6 +60,14 @@ secrets.json
 *.snk
 *.pem
 *.key
+id_rsa
+id_ed25519
+id_ed25519_*
+!id_ed25519_*.pub
+
+# Deploy archives produced by `docker save` — never the image itself.
+*.tar
+*.tar.gz
 
 # ── Local infrastructure state ───────────────────────────────────────────────
 .volumes/

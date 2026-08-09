@@ -72,7 +72,7 @@ public sealed class VoteTallyTests
             Cast(4uL, VoteChoice.Abstain),
         ];
 
-        VoteTally tally = VoteTally.From(votes);
+        var tally = VoteTally.From(votes);
 
         tally.Approvals.ShouldBe(2);
         tally.Rejections.ShouldBe(1);
@@ -88,7 +88,7 @@ public sealed class VoteTallyTests
         Vote retracted = Cast(1uL, VoteChoice.Approve);
         retracted.MarkDeleted(Moment.AddHours(1), deletedBy: 1uL);
 
-        VoteTally tally = VoteTally.From([retracted, Cast(2uL, VoteChoice.Reject)]);
+        var tally = VoteTally.From([retracted, Cast(2uL, VoteChoice.Reject)]);
 
         tally.Approvals.ShouldBe(0);
         tally.Rejections.ShouldBe(1);
@@ -96,25 +96,16 @@ public sealed class VoteTallyTests
     }
 
     [Fact]
-    public void CountingAnEmptySequenceProducesTheEmptyTally()
-    {
-        VoteTally.From([]).ShouldBe(VoteTally.Empty);
-    }
+    public void CountingAnEmptySequenceProducesTheEmptyTally() => VoteTally.From([]).ShouldBe(VoteTally.Empty);
 
     [Fact]
-    public void CountingRejectsANullSequence()
-    {
-        _ = Should.Throw<ArgumentNullException>(() => VoteTally.From(null!));
-    }
+    public void CountingRejectsANullSequence() => _ = Should.Throw<ArgumentNullException>(() => VoteTally.From(null!));
 
     [Theory]
     [InlineData(-1, 0, 0)]
     [InlineData(0, -1, 0)]
     [InlineData(0, 0, -1)]
-    public void ConstructionRejectsANegativeCount(int approvals, int rejections, int abstentions)
-    {
-        _ = Should.Throw<ArgumentOutOfRangeException>(() => new VoteTally(approvals, rejections, abstentions));
-    }
+    public void ConstructionRejectsANegativeCount(int approvals, int rejections, int abstentions) => _ = Should.Throw<ArgumentOutOfRangeException>(() => new VoteTally(approvals, rejections, abstentions));
 
     private static DateTimeOffset Moment => new(2026, 8, 8, 12, 0, 0, TimeSpan.Zero);
 

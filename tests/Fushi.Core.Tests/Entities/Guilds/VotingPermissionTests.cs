@@ -54,7 +54,7 @@ public sealed class VotingPermissionTests
     [Fact]
     public void ANoteIsTrimmedAndAnEmptyOneIsRecordedAsAbsent()
     {
-        VotingPermission permission = VotingPermission.Create(
+        var permission = VotingPermission.Create(
             1uL,
             VotingPermissionScope.User,
             9uL,
@@ -71,10 +71,7 @@ public sealed class VotingPermissionTests
     }
 
     [Fact]
-    public void AGrantWithoutANoteRecordsNone()
-    {
-        Permission(VotingPermissionScope.User, 9uL).Note.ShouldBeNull();
-    }
+    public void AGrantWithoutANoteRecordsNone() => Permission(VotingPermissionScope.User, 9uL).Note.ShouldBeNull();
 
     [Theory]
     [InlineData(0uL, 9uL)]

@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Fushi.Host</RootNamespace>
+    <AssemblyName>Fushi.Host</AssemblyName>
+    <UserSecretsId>fushi-host</UserSecretsId>
+    <Description>
+      The executable and the only project that sees the whole composition:
+      configuration, registration, logging, telemetry, health reporting, and the
+      hosted services that drive the bot on a timer rather than in response to a
+      user. It decides nothing about the domain; it decides what is wired to what.
+    </Description>
+  </PropertyGroup>
+
+  <!--
+    The Web SDK rather than the Worker SDK, purely for the health endpoints. A bot
+    serves no other HTTP traffic, but a liveness and a readiness probe are what
+    every container platform expects to poll, and hand-rolling a listener to avoid
+    a framework reference already in the shared framework would be the more
+    complicated choice.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fushi.Application\Fushi.Application.csproj" />
+    <ProjectReference Include="..\Fushi.Infrastructure\Fushi.Infrastructure.csproj" />
+    <ProjectReference Include="..\Fushi.Gateway\Fushi.Gateway.csproj" />
+    <ProjectReference Include="..\Fushi.Interactions\Fushi.Interactions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Label="Logging">
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Serilog.Enrichers.Environment" />
+    <PackageReference Include="Serilog.Enrichers.Thread" />
+  </ItemGroup>
+
+  <ItemGroup Label="Telemetry">
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,76 @@
+# Production stack for Fushi.
+#
+# Intended for a VPS that holds the image and this file — not the source tree.
+# Build the image on a development machine, ship it with `docker save`, then:
+#
+#   docker load < fushi.tar
+#   cp .env.production.example .env   # fill Discord__Token and a real password
+#   docker compose -f docker-compose.prod.yml up -d --wait
+#
+# The bot opens no inbound ports to the internet. PostgreSQL is published on
+# loopback only, for backups and emergency `psql` from the host.
+
+name: fushi
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: fushi-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fushi}
+      POSTGRES_USER: ${POSTGRES_USER:-fushi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      TZ: UTC
+      PGTZ: UTC
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fushi} -d ${POSTGRES_DB:-fushi}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - fushi
+
+  bot:
+    # Tag whatever you loaded. Override with FUSHI_IMAGE in .env when promoting.
+    image: ${FUSHI_IMAGE:-fushi:1.0}
+    container_name: fushi-bot
+    restart: unless-stopped
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      # Single instance: migrate on start so a fresh volume is usable without a
+      # separate migrate step. Turn off if you ever run more than one bot.
+      Database__ApplyMigrationsOnStartup: ${Database__ApplyMigrationsOnStartup:-true}
+      Discord__Token: ${Discord__Token:?Discord__Token must be set}
+      # Empty in production = global slash-command registration.
+      Discord__DevelopmentGuildId: ${Discord__DevelopmentGuildId:-}
+      # Service name, not localhost — the bot reaches Postgres on the compose network.
+      ConnectionStrings__Database: >-
+        Host=postgres;Port=5432;Database=${POSTGRES_DB:-fushi};
+        Username=${POSTGRES_USER:-fushi};Password=${POSTGRES_PASSWORD}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-fushi}
+      # Health endpoints stay on loopback inside the container. Nothing publishes
+      # them to the host; inspect with `docker compose exec bot` if needed.
+      ASPNETCORE_URLS: http://127.0.0.1:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fushi
+
+volumes:
+  postgres-data:
+    name: fushi-postgres-data
+
+networks:
+  fushi:
+    name: fushi
+    driver: bridge

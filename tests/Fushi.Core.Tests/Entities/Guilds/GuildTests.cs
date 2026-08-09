@@ -174,10 +174,7 @@ public sealed class GuildTests
     // rather than letting the wrong people decide applications, which nobody
     // notices.
     [Fact]
-    public void NobodyMayVoteUntilSomebodyIsGranted()
-    {
-        New().CanVote(9uL, NoRoles).ShouldBeFalse();
-    }
+    public void NobodyMayVoteUntilSomebodyIsGranted() => New().CanVote(9uL, NoRoles).ShouldBeFalse();
 
     [Fact]
     public void AUserGrantCoversThatUserAndNobodyElse()

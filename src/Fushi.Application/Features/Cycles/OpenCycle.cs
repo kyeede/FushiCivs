@@ -1,3 +1,4 @@
+using FluentValidation;
 using Fushi.Application.Abstractions.Discord;
 using Fushi.Application.Abstractions.Messaging;
 using Fushi.Application.Abstractions.Persistence;
@@ -10,9 +11,6 @@ using Fushi.Core.Entities.Guilds;
 using Fushi.Core.Entities.Submissions;
 using Fushi.Core.Identifiers;
 using Fushi.Core.Results;
-
-using FluentValidation;
-
 using Microsoft.Extensions.Logging;
 
 namespace Fushi.Application.Features.Cycles;
@@ -142,7 +140,7 @@ internal sealed class OpenCycleHandler(
         }
 
         DateTimeOffset now = clock.GetUtcNow();
-        DateOnly today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(now, zone).DateTime);
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(now, zone).DateTime);
         CycleWindow? scheduled = schedule.WindowFor(today);
 
         if (!request.BypassSchedule && scheduled is null)
@@ -328,7 +326,7 @@ internal sealed class OpenCycleHandler(
         TimeZoneInfo zone)
     {
         DateTime localNow = TimeZoneInfo.ConvertTime(now, zone).DateTime;
-        DateTime localClose = today.ToDateTime(schedule.ClosesAt, DateTimeKind.Unspecified);
+        var localClose = today.ToDateTime(schedule.ClosesAt, DateTimeKind.Unspecified);
 
         if (localClose <= localNow)
         {

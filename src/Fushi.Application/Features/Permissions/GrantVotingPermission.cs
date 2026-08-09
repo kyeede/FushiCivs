@@ -1,3 +1,4 @@
+using FluentValidation;
 using Fushi.Application.Abstractions.Discord;
 using Fushi.Application.Abstractions.Messaging;
 using Fushi.Application.Abstractions.Persistence;
@@ -8,9 +9,6 @@ using Fushi.Core.Entities.Audits;
 using Fushi.Core.Entities.Guilds;
 using Fushi.Core.Results;
 using Fushi.Core.Utilities;
-
-using FluentValidation;
-
 using Microsoft.Extensions.Logging;
 
 namespace Fushi.Application.Features.Permissions;
@@ -148,7 +146,7 @@ internal sealed class GrantVotingPermissionHandler(
         }
 
         DateTimeOffset now = clock.GetUtcNow();
-        VotingPermission permission = VotingPermission.Create(
+        var permission = VotingPermission.Create(
             guild.Id,
             request.Scope,
             request.TargetId,

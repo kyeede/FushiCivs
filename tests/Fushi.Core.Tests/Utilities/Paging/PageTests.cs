@@ -12,7 +12,7 @@ public sealed class PageTests
     [Fact]
     public void AssemblingAPageTakesItsPositionFromTheRequestAndTheTotal()
     {
-        Page<string> page = Page<string>.From(["d", "e", "f"], new PageRequest(2, 3), totalCount: 8);
+        var page = Page<string>.From(["d", "e", "f"], new PageRequest(2, 3), totalCount: 8);
 
         page.Count.ShouldBe(3);
         page.Info.Number.ShouldBe(2);
@@ -25,7 +25,7 @@ public sealed class PageTests
     [Fact]
     public void APageIsEnumerableAndIndexableOverItsOwnItems()
     {
-        Page<int> page = Page<int>.From([1, 2, 3], PageRequest.Default, totalCount: 3);
+        var page = Page<int>.From([1, 2, 3], PageRequest.Default, totalCount: 3);
 
         page[0].ShouldBe(1);
         page[2].ShouldBe(3);
@@ -38,7 +38,7 @@ public sealed class PageTests
     [Fact]
     public void ProjectingAPageKeepsItsPositionExactly()
     {
-        Page<int> page = Page<int>.From([1, 2, 3], new PageRequest(2, 3), totalCount: 8);
+        var page = Page<int>.From([1, 2, 3], new PageRequest(2, 3), totalCount: 8);
 
         Page<string> projected = page.Map(value => new string('x', value));
 
@@ -58,7 +58,7 @@ public sealed class PageTests
     [Fact]
     public void AnEmptyPageIsTheFirstPageOfNothing()
     {
-        Page<string> page = Page<string>.Empty();
+        var page = Page<string>.Empty();
 
         page.Count.ShouldBe(0);
         page.Info.Number.ShouldBe(1);
@@ -67,17 +67,14 @@ public sealed class PageTests
     }
 
     [Fact]
-    public void AnEmptyPageRemembersTheSizeThatWasAskedFor()
-    {
-        Page<string>.Empty(25).Info.Size.ShouldBe(25);
-    }
+    public void AnEmptyPageRemembersTheSizeThatWasAskedFor() => Page<string>.Empty(25).Info.Size.ShouldBe(25);
 
     // The last page of a sequence is shorter than the page size, and that has to
     // stay true of the items without changing what the position reports.
     [Fact]
     public void AShortLastPageStillReportsTheFullSize()
     {
-        Page<int> page = Page<int>.From([9], new PageRequest(3, 4), totalCount: 9);
+        var page = Page<int>.From([9], new PageRequest(3, 4), totalCount: 9);
 
         page.Count.ShouldBe(1);
         page.Info.Size.ShouldBe(4);

@@ -34,34 +34,22 @@ public sealed class CycleWindowTests
     [InlineData(15, true)]
     [InlineData(22, false)]
     [InlineData(23, false)]
-    public void ContainsTreatsTheIntervalAsHalfOpen(int hour, bool expected)
-    {
-        Window().Contains(Instant(hour)).ShouldBe(expected);
-    }
+    public void ContainsTreatsTheIntervalAsHalfOpen(int hour, bool expected) => Window().Contains(Instant(hour)).ShouldBe(expected);
 
     [Theory]
     [InlineData(9, false)]
     [InlineData(10, true)]
     [InlineData(23, true)]
-    public void HasOpenedIsTrueFromTheOpeningInstantOnwards(int hour, bool expected)
-    {
-        Window().HasOpened(Instant(hour)).ShouldBe(expected);
-    }
+    public void HasOpenedIsTrueFromTheOpeningInstantOnwards(int hour, bool expected) => Window().HasOpened(Instant(hour)).ShouldBe(expected);
 
     [Theory]
     [InlineData(21, false)]
     [InlineData(22, true)]
     [InlineData(23, true)]
-    public void HasClosedIsTrueFromTheClosingInstantOnwards(int hour, bool expected)
-    {
-        Window().HasClosed(Instant(hour)).ShouldBe(expected);
-    }
+    public void HasClosedIsTrueFromTheClosingInstantOnwards(int hour, bool expected) => Window().HasClosed(Instant(hour)).ShouldBe(expected);
 
     [Fact]
-    public void RemainingFromCountsDownToTheClosingInstant()
-    {
-        Window().RemainingFrom(Instant(20)).ShouldBe(TimeSpan.FromHours(2));
-    }
+    public void RemainingFromCountsDownToTheClosingInstant() => Window().RemainingFrom(Instant(20)).ShouldBe(TimeSpan.FromHours(2));
 
     [Fact]
     public void RemainingFromNeverGoesNegative()

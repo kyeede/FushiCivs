@@ -15,7 +15,7 @@ public sealed class EntityTests
     [Fact]
     public void TwoInstancesWithTheSameIdentifierAreTheSameEntity()
     {
-        Guid id = Guid.NewGuid();
+        var id = Guid.NewGuid();
 
         Sample first = new(id);
         Sample second = new(id);
@@ -41,7 +41,7 @@ public sealed class EntityTests
     [Fact]
     public void TwoTypesSharingAnIdentifierAreStillDifferentEntities()
     {
-        Guid id = Guid.NewGuid();
+        var id = Guid.NewGuid();
 
         Sample sample = new(id);
         Other other = new(id);
@@ -75,22 +75,13 @@ public sealed class EntityTests
     }
 
     [Fact]
-    public void TwoAbsentEntitiesAreEqual()
-    {
-        (Absent() == Absent()).ShouldBeTrue();
-    }
+    public void TwoAbsentEntitiesAreEqual() => (Absent() == Absent()).ShouldBeTrue();
 
     [Fact]
-    public void ComparingAgainstAnUnrelatedObjectIsFalseRatherThanAnError()
-    {
-        new Sample(Guid.NewGuid()).Equals("not an entity").ShouldBeFalse();
-    }
+    public void ComparingAgainstAnUnrelatedObjectIsFalseRatherThanAnError() => new Sample(Guid.NewGuid()).Equals("not an entity").ShouldBeFalse();
 
     [Fact]
-    public void AnEntityCannotBeCreatedWithoutAnIdentifier()
-    {
-        _ = Should.Throw<ArgumentException>(() => new Sample(Guid.Empty));
-    }
+    public void AnEntityCannotBeCreatedWithoutAnIdentifier() => _ = Should.Throw<ArgumentException>(() => new Sample(Guid.Empty));
 
     private static Sample? Absent() => null;
 

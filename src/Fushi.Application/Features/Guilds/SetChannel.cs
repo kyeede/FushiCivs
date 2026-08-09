@@ -15,54 +15,44 @@ using Microsoft.Extensions.Logging;
 namespace Fushi.Application.Features.Guilds;
 
 /// <summary>
-/// Sets which channels a guild uses for each stage of the process.
+/// Assigns one channel to one of the jobs a guild routes through, or clears it.
 /// </summary>
 /// <remarks>
-/// A <see langword="null"/> channel leaves that setting as it was. This matches
-/// how Discord delivers a slash command: options the user did not fill in simply
-/// are not sent, so treating absence as "clear this" would wipe settings every
-/// time somebody changed one of the others.
+/// One role per command, rather than a request carrying all five channels with
+/// <see langword="null"/> meaning "leave this one alone". That older shape existed
+/// to mirror a slash command with five optional options, and it made clearing a
+/// channel inexpressible: absence already meant "no change", so there was no value
+/// left over to mean "remove it".
+/// <br/>
+/// Naming the role instead separates the two intentions cleanly. A
+/// <see langword="null"/> <paramref name="ChannelId"/> now unambiguously means
+/// clear, because the role says which setting is being talked about.
 /// </remarks>
 /// <param name="GuildId">The guild being configured.</param>
 /// <param name="ActorId">The user issuing the change.</param>
-/// <param name="IntakeChannelId">
-/// Where applications are collected from, or <see langword="null"/> to leave it.
+/// <param name="Role">Which job the channel is being assigned to.</param>
+/// <param name="ChannelId">
+/// The channel to assign, or <see langword="null"/> to clear the role.
 /// </param>
-/// <param name="ReviewChannelId">
-/// Where they are posted for voting, or <see langword="null"/> to leave it.
-/// </param>
-/// <param name="ResultsChannelId">
-/// Where outcomes are published, or <see langword="null"/> to leave it. Falls
-/// back to the review channel when never set.
-/// </param>
-/// <param name="ArchiveChannelId">
-/// Where decided submissions are kept, or <see langword="null"/> to leave it.
-/// </param>
-/// <param name="LogChannelId">
-/// Where moderation activity is recorded, or <see langword="null"/> to leave it.
-/// </param>
-public sealed record ConfigureChannels(
+public sealed record SetChannel(
     ulong GuildId,
     ulong ActorId,
-    ulong? IntakeChannelId = null,
-    ulong? ReviewChannelId = null,
-    ulong? ResultsChannelId = null,
-    ulong? ArchiveChannelId = null,
-    ulong? LogChannelId = null) : ICommand;
+    GuildChannelRole Role,
+    ulong? ChannelId) : ICommand;
 
 /// <summary>
-/// Checks the shape of a <see cref="ConfigureChannels"/> command.
+/// Checks the shape of a <see cref="SetChannel"/> command.
 /// </summary>
 /// <remarks>
 /// Only what can be judged from the command alone. Whether the bot can actually
-/// post in a channel needs Discord, and is checked by the handler.
+/// read or post in a channel needs Discord, and is checked when it tries.
 /// </remarks>
-internal sealed class ConfigureChannelsValidator : AbstractValidator<ConfigureChannels>
+internal sealed class SetChannelValidator : AbstractValidator<SetChannel>
 {
     /// <summary>
     /// Initialises the rule set.
     /// </summary>
-    public ConfigureChannelsValidator()
+    public SetChannelValidator()
     {
         RuleFor(command => command.GuildId)
             .NotEqual(0uL)
@@ -72,40 +62,45 @@ internal sealed class ConfigureChannelsValidator : AbstractValidator<ConfigureCh
             .NotEqual(0uL)
             .WithMessage("An acting user is required.");
 
+        RuleFor(command => command.Role)
+            .IsInEnum()
+            .WithMessage("That is not a channel this bot uses.");
+
+        RuleFor(command => command.ChannelId)
+            .NotEqual(0uL)
+            .WithMessage("A channel is required. Omit it entirely to clear the setting.");
+
+        // Intake and review are what IsReady is made of, so clearing one takes
+        // the guild out of service. That is a legitimate thing to want, but it
+        // is not something to reach by accident, and the caller has a disable
+        // command that says so out loud.
         RuleFor(command => command)
-            .Must(command => command.IntakeChannelId is not null
-                || command.ReviewChannelId is not null
-                || command.ResultsChannelId is not null
-                || command.ArchiveChannelId is not null
-                || command.LogChannelId is not null)
-            .WithMessage("Give at least one channel to change.");
+            .Must(command => command.ChannelId is not null
+                || command.Role is not (GuildChannelRole.Intake or GuildChannelRole.Review))
+            .WithMessage(
+                "The intake and review channels cannot be cleared, only pointed somewhere else. "
+                + "Use the disable command to stop cycles opening.");
     }
 }
 
 /// <summary>
-/// Carries out <see cref="ConfigureChannels"/>.
+/// Carries out <see cref="SetChannel"/>.
 /// </summary>
 /// <param name="guilds">The guild store.</param>
 /// <param name="members">Used to confirm the actor may configure the guild.</param>
 /// <param name="audit">The audit trail.</param>
-/// <param name="clock">
-/// Supplies the current instant. <see cref="TimeProvider"/> rather than a bespoke
-/// clock interface: it is the framework's own abstraction, and tests can
-/// substitute a fake without this project defining one.
-/// </param>
+/// <param name="clock">Supplies the current instant.</param>
 /// <param name="logger">The logger to write to.</param>
-internal sealed class ConfigureChannelsHandler(
+internal sealed class SetChannelHandler(
     IGuildRepository guilds,
     IGuildMemberLookup members,
     IAuditWriter audit,
     TimeProvider clock,
-    ILogger<ConfigureChannelsHandler> logger)
-    : ICommandHandler<ConfigureChannels>
+    ILogger<SetChannelHandler> logger)
+    : ICommandHandler<SetChannel>
 {
     /// <inheritdoc/>
-    public async Task<Result> HandleAsync(
-        ConfigureChannels request,
-        CancellationToken cancellationToken)
+    public async Task<Result> HandleAsync(SetChannel request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -132,12 +127,7 @@ internal sealed class ConfigureChannelsHandler(
             cancellationToken);
 
         GuildChannels current = guild.Channels;
-        GuildChannels updated = new(
-            request.IntakeChannelId ?? current.IntakeChannelId,
-            request.ReviewChannelId ?? current.ReviewChannelId,
-            request.ResultsChannelId ?? current.ResultsChannelId,
-            request.ArchiveChannelId ?? current.ArchiveChannelId,
-            request.LogChannelId ?? current.LogChannelId);
+        GuildChannels updated = Apply(current, request.Role, request.ChannelId);
 
         if (updated.IntakeChannelId is { } intake
             && updated.ReviewChannelId is { } review
@@ -150,7 +140,7 @@ internal sealed class ConfigureChannelsHandler(
         {
             // Nothing changed, so there is nothing to audit and no reason to
             // write a row. Reported as success because the caller's intent is
-            // satisfied: the channels are what they asked for.
+            // satisfied: the channel is what they asked for.
             return Result.Success();
         }
 
@@ -173,6 +163,19 @@ internal sealed class ConfigureChannelsHandler(
 
         return Result.Success();
     }
+
+    private static GuildChannels Apply(
+        GuildChannels channels,
+        GuildChannelRole role,
+        ulong? channelId) => role switch
+        {
+            GuildChannelRole.Intake => channels with { IntakeChannelId = channelId },
+            GuildChannelRole.Review => channels with { ReviewChannelId = channelId },
+            GuildChannelRole.Results => channels with { ResultsChannelId = channelId },
+            GuildChannelRole.Archive => channels with { ArchiveChannelId = channelId },
+            GuildChannelRole.Log => channels with { LogChannelId = channelId },
+            _ => channels,
+        };
 
     private static string Describe(GuildChannels before, GuildChannels after)
         => System.Text.Json.JsonSerializer.Serialize(new { before, after });

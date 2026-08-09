@@ -37,18 +37,12 @@ public sealed class PageRequestTests
     [InlineData(1, 10, 0)]
     [InlineData(2, 10, 10)]
     [InlineData(3, 25, 50)]
-    public void SkipIsTheOffsetOfTheFirstItemOnThePage(int number, int size, int expected)
-    {
-        new PageRequest(number, size).Skip.ShouldBe(expected);
-    }
+    public void SkipIsTheOffsetOfTheFirstItemOnThePage(int number, int size, int expected) => new PageRequest(number, size).Skip.ShouldBe(expected);
 
     // Computed in long arithmetic, so a large page number saturates instead of
     // overflowing into a negative offset the database would reject.
     [Fact]
-    public void SkipSaturatesRatherThanOverflowingOnAnAbsurdPageNumber()
-    {
-        new PageRequest(int.MaxValue, PageRequest.MAX_SIZE).Skip.ShouldBe(int.MaxValue);
-    }
+    public void SkipSaturatesRatherThanOverflowingOnAnAbsurdPageNumber() => new PageRequest(int.MaxValue, PageRequest.MAX_SIZE).Skip.ShouldBe(int.MaxValue);
 
     [Theory]
     [InlineData(0, 10, 1, 10)]
@@ -61,7 +55,7 @@ public sealed class PageRequestTests
         int expectedNumber,
         int expectedSize)
     {
-        PageRequest request = PageRequest.Clamp(number, size);
+        var request = PageRequest.Clamp(number, size);
 
         request.Number.ShouldBe(expectedNumber);
         request.Size.ShouldBe(expectedSize);
@@ -73,8 +67,5 @@ public sealed class PageRequestTests
     [InlineData(0, 10)]
     [InlineData(1, 0)]
     [InlineData(1, PageRequest.MAX_SIZE + 1)]
-    public void TheConstructorRefusesOutOfRangeInput(int number, int size)
-    {
-        _ = Should.Throw<ArgumentOutOfRangeException>(() => new PageRequest(number, size));
-    }
+    public void TheConstructorRefusesOutOfRangeInput(int number, int size) => _ = Should.Throw<ArgumentOutOfRangeException>(() => new PageRequest(number, size));
 }

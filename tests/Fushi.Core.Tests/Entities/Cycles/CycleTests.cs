@@ -21,7 +21,7 @@ public sealed class CycleTests
     {
         VotingPolicy policy = new(approvalRatio: 0.75d, quorum: 5);
 
-        Cycle cycle = Cycle.Create(guildId: 1uL, Window(), policy, Opens.AddDays(-1), createdBy: 7uL);
+        var cycle = Cycle.Create(guildId: 1uL, Window(), policy, Opens.AddDays(-1), createdBy: 7uL);
 
         cycle.Status.ShouldBe(CycleStatus.Scheduled);
         cycle.OpensAt.ShouldBe(Opens);

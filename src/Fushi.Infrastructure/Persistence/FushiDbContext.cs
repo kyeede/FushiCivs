@@ -129,7 +129,7 @@ public sealed class FushiDbContext(DbContextOptions<FushiDbContext> options)
     {
         // Configuring an entity can add types to the model, so the set is taken
         // before the loop rather than iterated as it changes.
-        List<Type> clrTypes = modelBuilder.Model
+        var clrTypes = modelBuilder.Model
             .GetEntityTypes()
             .Select(entity => entity.ClrType)
             .ToList();

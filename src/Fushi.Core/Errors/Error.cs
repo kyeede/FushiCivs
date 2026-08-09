@@ -24,13 +24,10 @@ namespace Fushi.Core.Errors;
 /// </example>
 public readonly record struct Error
 {
-    private readonly string? _code;
-    private readonly string? _description;
-
     private Error(string code, string description, ErrorType type)
     {
-        _code = code;
-        _description = description;
+        Code = code;
+        Description = description;
         Type = type;
     }
 
@@ -50,7 +47,7 @@ public readonly record struct Error
     /// A dotted key such as <c>Submission.NotFound</c>, or an empty string for
     /// <see cref="None"/>.
     /// </value>
-    public string Code => _code ?? string.Empty;
+    public string Code => field ?? string.Empty;
 
     /// <summary>
     /// Gets the human-readable explanation of the failure.
@@ -59,7 +56,7 @@ public readonly record struct Error
     /// A complete sentence suitable for showing to a user, or an empty string
     /// for <see cref="None"/>.
     /// </value>
-    public string Description => _description ?? string.Empty;
+    public string Description => field ?? string.Empty;
 
     /// <summary>
     /// Gets the category this failure belongs to.

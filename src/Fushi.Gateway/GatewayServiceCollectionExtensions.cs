@@ -90,6 +90,7 @@ public static class GatewayServiceCollectionExtensions
         // logger, and neither caches an answer, so there is nothing a per-request
         // instance would isolate.
         services.AddSingleton<IGuildMemberLookup, DiscordGuildMemberLookup>();
+        services.AddSingleton<IGuildDirectory, DiscordGuildDirectory>();
         services.AddSingleton<IIntakeSource, DiscordIntakeSource>();
     }
 }

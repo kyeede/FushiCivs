@@ -65,28 +65,16 @@ public abstract class Entity<TId> : IEntity<TId>, IEquatable<Entity<TId>>
     public bool Equals(Entity<TId>? other)
     {
         if (other is null)
-        {
             return false;
-        }
 
         if (ReferenceEquals(this, other))
-        {
             return true;
-        }
 
-        // A derived type is never equal to its base, so a Submission and a Vote
-        // that happen to share a Guid stay distinct.
         if (GetType() != other.GetType())
-        {
             return false;
-        }
 
-        if (
-            EqualityComparer<TId>.Default.Equals(Id, default) || EqualityComparer<TId>.Default.Equals(other.Id, default)
-        )
-        {
+        if (IsTransient() || other.IsTransient())
             return false;
-        }
 
         return Id.Equals(other.Id);
     }
@@ -120,4 +108,13 @@ public abstract class Entity<TId> : IEntity<TId>, IEquatable<Entity<TId>>
     /// <param name="right">The second entity, which may be <see langword="null"/>.</param>
     /// <returns>The negation of <see cref="op_Equality"/>.</returns>
     public static bool operator !=(Entity<TId>? left, Entity<TId>? right) => !(left == right);
+
+    /// <summary>
+    /// Determines whether the entity has not yet been persisted and therefore has
+    /// no permanent identifier.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> when the entity has not yet been persisted and has a default identifier; otherwise <see langword="false"/>.
+    /// </returns>
+    private bool IsTransient() => EqualityComparer<TId>.Default.Equals(Id, default);
 }

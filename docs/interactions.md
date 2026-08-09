@@ -34,31 +34,55 @@ server and sitting on the review panel are different jobs.
 
 Requires **Manage Server**.
 
-| Command | Options | Notes |
+**No command in this group takes an option.** Each is an entry point to a panel,
+and every setting is written by a component on that panel. A slash command option
+is filled in blind — Discord shows its name and nothing else, not the current
+value, not the legal range, not what it interacts with — so the failure mode was
+guessing and being refused. A menu cannot express an illegal value and opens
+showing the current one.
+
+| Command | Options | Opens |
 | --- | --- | --- |
-| `/config show` | — | Current channels, policy, schedule, and enabled state. Ephemeral. |
-| `/config channels` | `intake`, `review`, `results?`, `archive?`, `log?` (all channel) | Opens a channel-select flow rather than taking five options at once. Intake and review are required before a cycle can open. |
-| `/config policy` | `ratio?` (number 0–100), `quorum?` (integer ≥ 0), `allow_abstain?`, `allow_self_vote?`, `allow_vote_change?` (all boolean) | Takes effect on cycles opened afterwards. A cycle already running keeps the rules it opened under. |
-| `/config schedule` | `days?` (multi-select), `opens_at?` (`HH:mm`), `closes_at?` (`HH:mm`), `timezone?` (string, autocomplete) | `closes_at` at or before `opens_at` means an overnight window. |
-| `/config enable` | — | Allows cycles to open. |
-| `/config disable` | — | Stops new cycles opening. Keeps all configuration and history. |
+| `/config show` | — | Current channels, policy, schedule, and enabled state, with a button into each. Ephemeral. |
+| `/config channels` | — | The five roles, each with a **Set** / **Change** button leading to its own picker. |
+| `/config policy` | — | Threshold and quorum selects, and three toggle buttons. |
+| `/config schedule` | — | Day multi-select and presets, plus buttons for each end of the window and the time zone. |
+| `/config enable` | — | Nothing. Allows cycles to open. |
+| `/config disable` | — | A confirmation. Stops new cycles opening, keeping all configuration and history. |
 
-`ratio` is taken as a percentage (`60`) rather than a fraction (`0.6`), because
-that is how the value is discussed and because a mistyped `6` is obviously wrong
-where a mistyped `0.06` is not.
+Behind `SetChannel`, one role per command. The older `ConfigureChannels`, which
+carried all five channels with `null` meaning "leave alone", could not express
+clearing one: absence already meant no change, so no value was left over to mean
+removal. Naming the role separates the two, and a `null` channel now unambiguously
+clears.
 
-`timezone` is autocompleted from the IANA zones the host recognises. It is
-validated on submission: an identifier this machine does not know is rejected with
-an explanation rather than accepted and left to fail later inside the scheduler.
+The threshold is chosen as a whole percentage and divided at the interaction
+boundary, because the bar is discussed as "sixty percent" and the domain stores a
+ratio.
+
+Time zones are chosen region-first and paged, since a select menu holds
+twenty-five options and there are several hundred zones. The list is read from the
+host, so anything offered is by construction something the host can resolve —
+which is what removes the old class of failure where a valid-looking identifier
+was accepted and then fell back to UTC inside the scheduler.
 
 **Components**
 
-| Component | Where | Purpose |
+| Component | Custom ID | Purpose |
 | --- | --- | --- |
-| Channel select menus | `/config channels` | One per role (intake, review, results, archive, log), so all five are set in a single atomic change |
-| String select (multi) | `/config schedule` | Day-of-week picker, with `Standard`, `Weekdays`, `Weekend`, and `Daily` presets |
-| Autocomplete | `/config schedule timezone` | Filters IANA identifiers as you type |
-| Confirmation buttons | `/config disable` | Confirm / Cancel. Disabling stops every guild's cycle from opening, which is worth one extra click |
+| Buttons | `cfg:home`, `cfg:chan`, `cfg:pol`, `cfg:sch` | Move between panels. Every panel carries a **Back** |
+| Buttons | `cfg:chan:open:*` | Open one role's picker |
+| Channel select | `cfg:chan:set:*` | Text, announcement, and thread types everywhere; **forum** additionally for intake |
+| Button | `cfg:chan:clr:*` | Clear an optional role. Not rendered for intake or review, which the command refuses to clear |
+| String selects | `cfg:pol:ratio`, `cfg:pol:quorum` | Approval threshold and quorum |
+| Buttons | `cfg:pol:tog:*:*` | Flip a voting switch. The target value is encoded, not inferred, so the label and the effect cannot disagree |
+| String select (multi) | `cfg:days` | Day-of-week picker |
+| Buttons | `cfg:preset:*` | `standard`, `weekdays`, `weekend`, `daily`, `none` |
+| Buttons | `cfg:time:*` | Open the picker for one end of the window |
+| String selects | `cfg:hour:*`, `cfg:min:*` | Hour and minute. Each moves only the half it names |
+| String selects | `cfg:tzr`, `cfg:tzz:*:*` | Region, then zone within it |
+| Buttons | `cfg:tzp:*:*` | Page a region's zones |
+| Confirmation buttons | `ok:disable` | Disabling stops every cycle opening, which is worth one extra click |
 
 ## `/voter` — voting rights
 
@@ -66,22 +90,33 @@ Requires **Manage Roles**.
 
 | Command | Options | Notes |
 | --- | --- | --- |
-| `/voter grant` | `user?` (user), `role?` (role), `note?` (string, ≤ 512) | Exactly one of `user` or `role`. Re-granting an existing grant is a no-op, not an error. |
-| `/voter revoke` | `user?` (user), `role?` (role) | Removes the grant. There is no deny rule — revoking *is* removal. |
-| `/voter list` | `page?` (integer) | Paginated. Shows scope, mention, who granted it, when, and the note. |
-| `/voter check` | `user` (user) | Whether that user may vote right now, and which grant is responsible. |
+| `/voter grant` | — | Opens a mentionable select taking up to ten users and roles at once. Re-granting an existing grant is a no-op, not an error. |
+| `/voter revoke` | — | Opens a mentionable select taking one. Removes the grant; there is no deny rule, so revoking *is* removal. |
+| `/voter list` | `page?` (integer) | Paginated. Shows scope, mention, who granted it, when, and the note. Every row carries a **Revoke**. |
 
-`/voter check` exists because "why can this person vote" is the question that comes
-up when a grant list has grown, and tracing it by eye across user and role grants
-is error-prone. It resolves the caller's current roles the same way a real vote
-does, so its answer is the answer.
+Granting and revoking use a mentionable select rather than a `user?` / `role?`
+pair. The pair had to be validated — exactly one, never both, never neither — and
+the mentionable select makes that failure unrepresentable, since one control
+returns one thing and its type says which kind it is. It also grants several at
+once, which two scalar options could not do at all.
+
+The note is a modal offered after a single grant rather than an option on it. It
+is prose, so no menu could offer it; and asking for a justification before the
+grant takes effect would slow the common case for the sake of the rare one. A
+modal spanning several grants would have to guess which of them one note
+described, so it is offered only when exactly one was made.
 
 **Components**
 
-| Component | Where | Purpose |
+| Component | Custom ID | Purpose |
 | --- | --- | --- |
-| Previous / Next buttons | `/voter list` | Page navigation |
-| Confirmation buttons | `/voter revoke` on a role | Revoking a role grant can remove voting rights from many people at once |
+| Mentionable select | `vtr:grant:pick` | Users and roles together, up to ten |
+| Mentionable select | `vtr:revoke:pick` | One at a time, so a role's confirmation can state its blast radius |
+| Button | `vtr:note:*:*` | Opens the note modal for a single grant |
+| Modal | `m:vtrnote:*:*` | Re-grants with the note attached, which updates the existing row |
+| Buttons | `vtr:grant`, `vtr:list` | Move between granting and the list |
+| Button per row | `rev:*:*` | Revoke that row |
+| Confirmation buttons | `ok:revoke:*:*` | Revoking a role grant can remove voting rights from many people at once |
 
 ## `/cycle` — voting cycles
 
@@ -111,9 +146,16 @@ This is destructive and the confirmation says so.
 | Component | Where | Purpose |
 | --- | --- | --- |
 | Autocomplete | every `code` option | Recent cycles, shown as code plus date plus status |
+| Button per row | `cyc:close`, `cyc:final:*`, `cyc:cancel:*` on `/cycle list` | The one action the cycle in that row still needs, chosen from its status. A decided cycle gets none |
 | Confirmation buttons | `open`, `close`, `finalise`, `cancel` | All four change state visible to everyone in the guild |
 | Modal | `cancel` | Collects the reason, recorded on the audit entry |
-| Results embed | after `finalise` | Posted to the results channel, or the review channel if none is set |
+| Results panel | after `finalise` | Posted to the results channel, or the review channel if none is set |
+
+A row button opens the same confirmation the matching command does rather than
+carrying the action out. It is a shortcut past looking a code up, not past being
+told what is about to be discarded — and one button per row, because a section
+carries a single accessory, so the ordinary path through a cycle is the one that
+is one press away and the destructive path is not.
 
 ## `/submission` — applications
 

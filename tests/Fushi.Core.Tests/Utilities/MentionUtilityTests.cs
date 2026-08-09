@@ -21,7 +21,7 @@ public sealed class MentionUtilityTests
     [Fact]
     public void ATimestampCarriesUnixSecondsAndTheStyleSuffix()
     {
-        DateTimeOffset instant = DateTimeOffset.FromUnixTimeSeconds(1_745_160_000L);
+        var instant = DateTimeOffset.FromUnixTimeSeconds(1_745_160_000L);
 
         MentionUtility.Timestamp(instant, TimestampStyle.Relative).ShouldBe("<t:1745160000:R>");
         MentionUtility.Timestamp(instant).ShouldBe("<t:1745160000:f>");
@@ -35,10 +35,7 @@ public sealed class MentionUtilityTests
     [InlineData(TimestampStyle.ShortDateTime, "f")]
     [InlineData(TimestampStyle.LongDateTime, "F")]
     [InlineData(TimestampStyle.Relative, "R")]
-    public void EveryTimestampStyleHasItsOwnSuffix(TimestampStyle style, string expected)
-    {
-        MentionUtility.Timestamp(DateTimeOffset.UnixEpoch, style).ShouldBe($"<t:0:{expected}>");
-    }
+    public void EveryTimestampStyleHasItsOwnSuffix(TimestampStyle style, string expected) => MentionUtility.Timestamp(DateTimeOffset.UnixEpoch, style).ShouldBe($"<t:0:{expected}>");
 
     [Fact]
     public void AMentionRoundTripsThroughItsOwnParser()

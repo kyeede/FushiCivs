@@ -19,7 +19,7 @@ namespace Fushi.Application.Features.Guilds;
 /// </summary>
 /// <remarks>
 /// Every setting is nullable and <see langword="null"/> means "leave it alone",
-/// for the same reason it does on <see cref="ConfigureChannels"/>: Discord omits
+/// for the same reason it does on <see cref="ConfigureSchedule"/>: Discord omits
 /// slash command options the user did not fill in, so reading absence as an
 /// instruction would reset the other four settings every time somebody adjusted
 /// one.

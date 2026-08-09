@@ -33,17 +33,11 @@ public sealed class VotingPolicyTests
     }
 
     [Fact]
-    public void NoVotesAtAllIsSkipped()
-    {
-        Policy().Evaluate(VoteTally.Empty).ShouldBe(SubmissionOutcome.Skipped);
-    }
+    public void NoVotesAtAllIsSkipped() => Policy().Evaluate(VoteTally.Empty).ShouldBe(SubmissionOutcome.Skipped);
 
     // Even with the quorum gate disabled, an empty tally has nothing to decide on.
     [Fact]
-    public void NoVotesAtAllIsStillSkippedWhenTheQuorumGateIsDisabled()
-    {
-        Policy(quorum: 0).Evaluate(VoteTally.Empty).ShouldBe(SubmissionOutcome.Skipped);
-    }
+    public void NoVotesAtAllIsStillSkippedWhenTheQuorumGateIsDisabled() => Policy(quorum: 0).Evaluate(VoteTally.Empty).ShouldBe(SubmissionOutcome.Skipped);
 
     [Theory]
     [InlineData(3, 0, SubmissionOutcome.Approved)]
@@ -55,10 +49,7 @@ public sealed class VotingPolicyTests
     public void MeetingQuorumDecidesTheSubmissionOnTheApprovalShare(
         int approvals,
         int rejections,
-        SubmissionOutcome expected)
-    {
-        Policy().Evaluate(new VoteTally(approvals, rejections, abstentions: 0)).ShouldBe(expected);
-    }
+        SubmissionOutcome expected) => Policy().Evaluate(new VoteTally(approvals, rejections, abstentions: 0)).ShouldBe(expected);
 
     // The comparison is inclusive, so exactly meeting the threshold passes. Three
     // of five is 0.60 against a 0.60 policy, and a guild wanting a strict
@@ -102,10 +93,7 @@ public sealed class VotingPolicyTests
     }
 
     [Fact]
-    public void ApprovalsNeededIsZeroWhenTheSubmissionWouldAlreadyPass()
-    {
-        Policy().ApprovalsNeeded(new VoteTally(approvals: 3, rejections: 2, abstentions: 0)).ShouldBe(0);
-    }
+    public void ApprovalsNeededIsZeroWhenTheSubmissionWouldAlreadyPass() => Policy().ApprovalsNeeded(new VoteTally(approvals: 3, rejections: 2, abstentions: 0)).ShouldBe(0);
 
     // The projection and the verdict have to be the same rule seen from two
     // sides: adding exactly the number of approvals it reports must flip the
@@ -157,27 +145,18 @@ public sealed class VotingPolicyTests
     [InlineData(1.01d)]
     [InlineData(double.PositiveInfinity)]
     [InlineData(double.NaN)]
-    public void ConstructionRejectsAnApprovalRatioOutsideZeroToOne(double approvalRatio)
-    {
-        _ = Should.Throw<ArgumentOutOfRangeException>(() => new VotingPolicy(approvalRatio));
-    }
+    public void ConstructionRejectsAnApprovalRatioOutsideZeroToOne(double approvalRatio) => _ = Should.Throw<ArgumentOutOfRangeException>(() => new VotingPolicy(approvalRatio));
 
     [Theory]
     [InlineData(-1)]
     [InlineData(int.MinValue)]
-    public void ConstructionRejectsANegativeQuorum(int quorum)
-    {
-        _ = Should.Throw<ArgumentOutOfRangeException>(() => new VotingPolicy(quorum: quorum));
-    }
+    public void ConstructionRejectsANegativeQuorum(int quorum) => _ = Should.Throw<ArgumentOutOfRangeException>(() => new VotingPolicy(quorum: quorum));
 
     [Theory]
     [InlineData(0.01d)]
     [InlineData(0.5d)]
     [InlineData(1.0d)]
-    public void ConstructionAcceptsTheEndsOfTheApprovalRange(double approvalRatio)
-    {
-        new VotingPolicy(approvalRatio).ApprovalRatio.ShouldBe(approvalRatio);
-    }
+    public void ConstructionAcceptsTheEndsOfTheApprovalRange(double approvalRatio) => new VotingPolicy(approvalRatio).ApprovalRatio.ShouldBe(approvalRatio);
 
     // Zero is refused rather than stored. The getter reads a zero as "never
     // configured" and substitutes the default, so accepting zero would mean a
@@ -185,10 +164,7 @@ public sealed class VotingPolicyTests
     // keeps the constructor, the getter, and the ConfigureVotingPolicy validator
     // agreeing on one rule.
     [Fact]
-    public void AnApprovalRatioOfZeroIsRefusedRatherThanSilentlyBecomingTheDefault()
-    {
-        _ = Should.Throw<ArgumentOutOfRangeException>(() => new VotingPolicy(approvalRatio: 0.0d));
-    }
+    public void AnApprovalRatioOfZeroIsRefusedRatherThanSilentlyBecomingTheDefault() => _ = Should.Throw<ArgumentOutOfRangeException>(() => new VotingPolicy(approvalRatio: 0.0d));
 
     // The reading the constructor's refusal protects: a zero in the backing field
     // can only have come from a value that never ran the constructor.

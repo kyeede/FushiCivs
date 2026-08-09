@@ -20,10 +20,7 @@ public sealed class ShortCodeAlphabetTests
     [InlineData('L')]
     [InlineData('O')]
     [InlineData('U')]
-    public void SymbolSetExcludesTheConfusableAndUnfortunateLetters(char excluded)
-    {
-        ShortCodeAlphabet.Symbols.Contains(excluded).ShouldBeFalse();
-    }
+    public void SymbolSetExcludesTheConfusableAndUnfortunateLetters(char excluded) => ShortCodeAlphabet.Symbols.Contains(excluded).ShouldBeFalse();
 
     [Fact]
     public void EverySymbolMapsBackToItsOwnIndex()
@@ -45,10 +42,7 @@ public sealed class ShortCodeAlphabetTests
     [InlineData('z', 'Z')]
     [InlineData('7', '7')]
     [InlineData('!', '!')]
-    public void NormaliseFoldsConfusablesAndUpperCasesLetters(char typed, char expected)
-    {
-        ShortCodeAlphabet.Normalise(typed).ShouldBe(expected);
-    }
+    public void NormaliseFoldsConfusablesAndUpperCasesLetters(char typed, char expected) => ShortCodeAlphabet.Normalise(typed).ShouldBe(expected);
 
     [Theory]
     [InlineData('I', 1)]
@@ -57,10 +51,7 @@ public sealed class ShortCodeAlphabetTests
     [InlineData('o', 0)]
     [InlineData('a', 10)]
     [InlineData('Z', 31)]
-    public void ValueOfDecodesFoldedAndLowerCaseCharacters(char typed, int expected)
-    {
-        ShortCodeAlphabet.ValueOf(typed).ShouldBe(expected);
-    }
+    public void ValueOfDecodesFoldedAndLowerCaseCharacters(char typed, int expected) => ShortCodeAlphabet.ValueOf(typed).ShouldBe(expected);
 
     [Theory]
     [InlineData('U')]
@@ -81,17 +72,11 @@ public sealed class ShortCodeAlphabetTests
     [InlineData('z')]
     [InlineData('I')]
     [InlineData('O')]
-    public void ContainsAcceptsAnythingThatCanBeDecoded(char typed)
-    {
-        ShortCodeAlphabet.Contains(typed).ShouldBeTrue();
-    }
+    public void ContainsAcceptsAnythingThatCanBeDecoded(char typed) => ShortCodeAlphabet.Contains(typed).ShouldBeTrue();
 
     [Theory]
     [InlineData(-1)]
     [InlineData(ShortCodeAlphabet.RADIX)]
     [InlineData(int.MaxValue)]
-    public void SymbolForRejectsValuesOutsideTheRadix(int value)
-    {
-        _ = Should.Throw<ArgumentOutOfRangeException>(() => ShortCodeAlphabet.SymbolFor(value));
-    }
+    public void SymbolForRejectsValuesOutsideTheRadix(int value) => _ = Should.Throw<ArgumentOutOfRangeException>(() => ShortCodeAlphabet.SymbolFor(value));
 }

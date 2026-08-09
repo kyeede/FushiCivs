@@ -13,7 +13,7 @@ public sealed class ResultTests
     [Fact]
     public void ASuccessCarriesNoError()
     {
-        Result result = Result.Success();
+        var result = Result.Success();
 
         result.IsSuccess.ShouldBeTrue();
         result.IsFailure.ShouldBeFalse();
@@ -35,9 +35,9 @@ public sealed class ResultTests
     [Fact]
     public void AFailureCarriesTheErrorItWasGiven()
     {
-        Error error = Error.Conflict("Cycle.NotOpen", "That cycle is not accepting votes.");
+        var error = Error.Conflict("Cycle.NotOpen", "That cycle is not accepting votes.");
 
-        Result result = Result.Failure(error);
+        var result = Result.Failure(error);
 
         result.IsSuccess.ShouldBeFalse();
         result.IsFailure.ShouldBeTrue();
@@ -58,7 +58,7 @@ public sealed class ResultTests
     [Fact]
     public void AnErrorConvertsImplicitlyToAFailure()
     {
-        Error error = Error.NotFound("Submission.NotFound", "No submission has that code.");
+        var error = Error.NotFound("Submission.NotFound", "No submission has that code.");
 
         Result result = error;
 
@@ -85,7 +85,7 @@ public sealed class ResultTests
     [Fact]
     public void MatchRunsTheFailureBranchWithTheErrorForAFailure()
     {
-        Error error = Error.Validation("Vote.Invalid", "That is not a choice.");
+        var error = Error.Validation("Vote.Invalid", "That is not a choice.");
         bool successRan = false;
 
         string matched = Result.Failure(error).Match(
@@ -110,7 +110,7 @@ public sealed class ResultTests
     [Fact]
     public void TheInterfaceReportsTheSameStateAsTheConcreteMembers()
     {
-        Error error = Error.Unexpected("Db.Unavailable", "The database did not answer.");
+        var error = Error.Unexpected("Db.Unavailable", "The database did not answer.");
 
         IResult success = AsInterface(Result.Success());
         IResult failure = AsInterface(Result.Failure(error));
@@ -127,7 +127,7 @@ public sealed class ResultTests
     [Fact]
     public void TwoResultsInTheSameStateAreEqual()
     {
-        Error error = Error.Forbidden("Vote.NotPermitted", "You may not vote here.");
+        var error = Error.Forbidden("Vote.NotPermitted", "You may not vote here.");
 
         Result.Success().ShouldBe(Result.Success());
         Result.Failure(error).ShouldBe(Result.Failure(error));

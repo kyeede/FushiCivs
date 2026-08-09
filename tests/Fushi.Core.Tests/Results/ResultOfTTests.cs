@@ -14,7 +14,7 @@ public sealed class ResultOfTTests
     [Fact]
     public void ASuccessCarriesItsValueAndNoError()
     {
-        Result<string> result = Result<string>.Success("7K4M2P");
+        var result = Result<string>.Success("7K4M2P");
 
         result.IsSuccess.ShouldBeTrue();
         result.IsFailure.ShouldBeFalse();
@@ -25,9 +25,9 @@ public sealed class ResultOfTTests
     [Fact]
     public void AFailureCarriesItsErrorAndNoValue()
     {
-        Error error = Error.NotFound("Submission.NotFound", "No submission has that code.");
+        var error = Error.NotFound("Submission.NotFound", "No submission has that code.");
 
-        Result<string> result = Result<string>.Failure(error);
+        var result = Result<string>.Failure(error);
 
         result.IsSuccess.ShouldBeFalse();
         result.IsFailure.ShouldBeTrue();
@@ -40,8 +40,8 @@ public sealed class ResultOfTTests
     [Fact]
     public void ReadingTheValueOfAFailureThrowsCarryingTheOriginalError()
     {
-        Error error = Error.Conflict("Cycle.Closed", "That cycle has already closed.");
-        Result<int> result = Result<int>.Failure(error);
+        var error = Error.Conflict("Cycle.Closed", "That cycle has already closed.");
+        var result = Result<int>.Failure(error);
 
         ResultAccessException thrown = Should.Throw<ResultAccessException>(() => _ = result.Value);
 
@@ -53,7 +53,7 @@ public sealed class ResultOfTTests
     [Fact]
     public void TryGetValueHandsBackTheValueOfASuccess()
     {
-        Result<int> result = Result<int>.Success(42);
+        var result = Result<int>.Success(42);
 
         result.TryGetValue(out int value).ShouldBeTrue();
         value.ShouldBe(42);
@@ -62,7 +62,7 @@ public sealed class ResultOfTTests
     [Fact]
     public void TryGetValueReportsFailureWithoutThrowing()
     {
-        Result<string> result = Result<string>.Failure(Error.Validation("Code.Invalid", "That is not a code."));
+        var result = Result<string>.Failure(Error.Validation("Code.Invalid", "That is not a code."));
 
         result.TryGetValue(out string? value).ShouldBeFalse();
         value.ShouldBeNull();
@@ -81,7 +81,7 @@ public sealed class ResultOfTTests
     [Fact]
     public void AnErrorConvertsImplicitlyToAFailure()
     {
-        Error error = Error.Forbidden("Vote.NotPermitted", "You may not vote here.");
+        var error = Error.Forbidden("Vote.NotPermitted", "You may not vote here.");
 
         Result<int> result = error;
 
@@ -93,21 +93,15 @@ public sealed class ResultOfTTests
     // A successful result with no value is what the non-generic Result is for, so
     // the generic one refuses to represent it.
     [Fact]
-    public void ASuccessCannotBeBuiltFromANullValue()
-    {
-        _ = Should.Throw<ArgumentNullException>(() => Result<string>.Success(null!));
-    }
+    public void ASuccessCannotBeBuiltFromANullValue() => _ = Should.Throw<ArgumentNullException>(() => Result<string>.Success(null!));
 
     [Fact]
-    public void AFailureCannotBeBuiltFromTheAbsenceOfAnError()
-    {
-        _ = Should.Throw<ArgumentException>(() => Result<string>.Failure(Error.None));
-    }
+    public void AFailureCannotBeBuiltFromTheAbsenceOfAnError() => _ = Should.Throw<ArgumentException>(() => Result<string>.Failure(Error.None));
 
     [Fact]
     public void NarrowingKeepsTheStateAndDiscardsTheValue()
     {
-        Error error = Error.Unexpected("Db.Unavailable", "The database did not answer.");
+        var error = Error.Unexpected("Db.Unavailable", "The database did not answer.");
 
         Result fromSuccess = Result<string>.Success("kept");
         Result fromFailure = Result<string>.Failure(error);
@@ -123,7 +117,7 @@ public sealed class ResultOfTTests
     [Fact]
     public void TheInterfaceReportsTheSameStateAsTheConcreteMembers()
     {
-        Error error = Error.Conflict("Vote.Duplicate", "You have already voted.");
+        var error = Error.Conflict("Vote.Duplicate", "You have already voted.");
 
         IResult success = AsInterface(Result<int>.Success(1));
         IResult failure = AsInterface(Result<int>.Failure(error));

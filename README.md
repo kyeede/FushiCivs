@@ -244,6 +244,7 @@ error.
 
 | Document | Contents |
 | --- | --- |
+| [docs/guide.md](docs/guide.md) | How to use the bot: first-time setup in five steps, the path an application takes, every command explained with its options, what each button and pop-up does, how to read a panel, and what to check when something looks wrong |
 | [docs/architecture.md](docs/architecture.md) | Layer diagram, the dependency rule and why it points inward, what belongs in each project, the CQRS pipeline, why PostgreSQL over MySQL |
 | [docs/domain.md](docs/domain.md) | Entity relationships, submission and cycle lifecycles, the exact voting arithmetic, the Approved/Rejected/Skipped distinction, the short-code system and its collision reasoning |
 | [docs/configuration.md](docs/configuration.md) | Every configuration key with its default and whether it is required, the precedence chain, the `__` separator, bot tokens, intents, and OAuth scopes |

@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Fushi.Interactions</RootNamespace>
+    <AssemblyName>Fushi.Interactions</AssemblyName>
+    <Description>
+      The Discord surface: slash commands, buttons, select menus, modals,
+      autocomplete providers, and the embeds that render domain objects into
+      messages. A module translates an interaction into a command or query,
+      dispatches it, and turns the Result back into a reply. No rule is decided
+      here; a decision that appears in this project belongs in Fushi.Application
+      or Fushi.Core instead.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Application only, never Fushi.Gateway. Reaching for the gateway's
+         readiness signal or its options class from here would put the code that
+         formats an embed in the same dependency graph as the code that worries
+         about a dropped WebSocket, which is the separation those two projects
+         exist to keep. The socket client arrives through dependency injection at
+         run time, which needs the package but not the project. -->
+    <ProjectReference Include="..\Fushi.Application\Fushi.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net.Core" />
+    <PackageReference Include="Discord.Net.Interactions" />
+    <PackageReference Include="Discord.Net.Rest" />
+    <PackageReference Include="Discord.Net.WebSocket" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+  </ItemGroup>
+
+</Project>

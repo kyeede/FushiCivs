@@ -9,6 +9,7 @@ using Fushi.Gateway.Options;
 
 using Discord;
 using Discord.Net;
+using Discord.Rest;
 using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
@@ -85,13 +86,23 @@ internal sealed class DiscordIntakeSource(
                 return Failed(channelId, GatewayErrors.ChannelNotFound(channelId));
             }
 
-            if (channel is not ITextChannel text)
+            // A thread and an announcement channel are both ITextChannel, so both
+            // fall into the first branch and need nothing of their own. A forum
+            // is the exception: it holds no messages at all, only posts, and each
+            // post is a thread whose opening message is the application.
+            IReadOnlyList<IntakeMessage>? messages = channel switch
             {
-                return Failed(channelId, GatewayErrors.ChannelNotText(channelId));
-            }
+                ITextChannel text =>
+                    await CollectAsync(text, afterMessageId, pageSize, request, cancellationToken),
+                SocketForumChannel forum =>
+                    await CollectPostsAsync(forum, afterMessageId, pageSize, request),
+                _ => null,
+            };
 
-            IReadOnlyList<IntakeMessage> messages =
-                await CollectAsync(text, afterMessageId, pageSize, request, cancellationToken);
+            if (messages is null)
+            {
+                return Failed(channelId, GatewayErrors.ChannelNotReadable(channelId));
+            }
 
             GatewayLog.IntakeRead(logger, messages.Count, channelId);
 
@@ -157,6 +168,66 @@ internal sealed class DiscordIntakeSource(
         }
 
         collected.Sort(static (left, right) => left.MessageId.CompareTo(right.MessageId));
+
+        return collected;
+    }
+
+    /// <summary>
+    /// Reads a forum's posts and projects the opening message of each.
+    /// </summary>
+    /// <remarks>
+    /// A forum post is a thread, and the identifier Discord gives that thread is
+    /// the identifier of its opening message. That coincidence is what lets the
+    /// same snowflake cursor work here as for a text channel: filtering threads by
+    /// identifier filters them by the moment their application was written, and a
+    /// post already captured can neither be missed nor read twice.
+    /// <br/>
+    /// Active posts are read together with a page of archived ones. Discord pages
+    /// archived threads by the time they were archived rather than by snowflake,
+    /// so the two cannot be walked as one sequence — but a post has to sit
+    /// untouched for days before it archives, and the sweeper runs every couple of
+    /// minutes, so anything archived before it was seen implies an outage measured
+    /// in days rather than an ordinary gap.
+    /// </remarks>
+    /// <param name="forum">The forum to read.</param>
+    /// <param name="afterMessageId">The last post already processed.</param>
+    /// <param name="pageSize">How many posts to read, already clamped.</param>
+    /// <param name="request">The request options carrying the cancellation token.</param>
+    /// <returns>The opening messages found, oldest first.</returns>
+    private static async Task<IReadOnlyList<IntakeMessage>> CollectPostsAsync(
+        SocketForumChannel forum,
+        ulong? afterMessageId,
+        int pageSize,
+        RequestOptions request)
+    {
+        ulong after = afterMessageId ?? 0UL;
+
+        IReadOnlyCollection<RestThreadChannel> active = await forum.GetActiveThreadsAsync(request);
+        IReadOnlyCollection<RestThreadChannel> archived =
+            await forum.GetPublicArchivedThreadsAsync(pageSize, null, request);
+
+        List<RestThreadChannel> posts =
+        [
+            .. active
+                .Concat(archived)
+                .Where(thread => thread.Id > after)
+                .DistinctBy(thread => thread.Id)
+                .OrderBy(thread => thread.Id)
+                .Take(pageSize),
+        ];
+
+        List<IntakeMessage> collected = [];
+
+        foreach (RestThreadChannel post in posts)
+        {
+            // The opening message shares the thread's identifier. Asking for it
+            // by that identifier is one lookup rather than a history page, and it
+            // cannot accidentally pick up a reply somebody left underneath.
+            if (await post.GetMessageAsync(post.Id, request) is { } opening)
+            {
+                collected.Add(Project(opening));
+            }
+        }
 
         return collected;
     }

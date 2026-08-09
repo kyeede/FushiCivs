@@ -31,7 +31,7 @@ public sealed class SubmissionTests
     public void ADraftMovesThroughTheQueueIntoReviewAndOnToADecision()
     {
         Submission submission = New();
-        Guid cycleId = Guid.NewGuid();
+        var cycleId = Guid.NewGuid();
 
         submission.Queue(Captured.AddMinutes(1), 7uL);
         submission.PutUnderReview(cycleId, Captured.AddMinutes(2), 7uL);
@@ -245,7 +245,7 @@ public sealed class SubmissionTests
     public void ACodeCanBeReplacedUntilTheSubmissionHasBeenPublished()
     {
         Submission submission = New();
-        ShortCode replacement = ShortCode.New();
+        var replacement = ShortCode.New();
 
         submission.ReassignCode(replacement);
         submission.Code.ShouldBe(replacement);
@@ -281,10 +281,7 @@ public sealed class SubmissionTests
     }
 
     [Fact]
-    public void TheApplicantIsWhoTheSubmissionMentions()
-    {
-        New().Mention.ShouldBe("<@5>");
-    }
+    public void TheApplicantIsWhoTheSubmissionMentions() => New().Mention.ShouldBe("<@5>");
 
     [Theory]
     [InlineData(0uL, 5uL, 6uL, 7uL)]

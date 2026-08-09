@@ -1,9 +1,7 @@
-using Fushi.Gateway.Logging;
-using Fushi.Gateway.Options;
-
 using Discord;
 using Discord.WebSocket;
-
+using Fushi.Gateway.Logging;
+using Fushi.Gateway.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -187,7 +185,7 @@ internal sealed class GatewayHostedService : BackgroundService
         // Translated into a local rather than inline, because an argument that is
         // a method call is evaluated whether or not the level is enabled, and the
         // library raises this event for every gateway frame.
-        LogLevel level = DiscordClientFactory.ToLogLevel(message.Severity);
+        var level = DiscordClientFactory.ToLogLevel(message.Severity);
 
         GatewayLog.Library(
             _logger,

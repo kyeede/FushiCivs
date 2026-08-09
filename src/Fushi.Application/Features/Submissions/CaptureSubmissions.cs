@@ -1,3 +1,4 @@
+using FluentValidation;
 using Fushi.Application.Abstractions.Discord;
 using Fushi.Application.Abstractions.Messaging;
 using Fushi.Application.Abstractions.Persistence;
@@ -9,9 +10,6 @@ using Fushi.Core.Entities.Guilds;
 using Fushi.Core.Entities.Submissions;
 using Fushi.Core.Identifiers;
 using Fushi.Core.Results;
-
-using FluentValidation;
-
 using Microsoft.Extensions.Logging;
 
 namespace Fushi.Application.Features.Submissions;
@@ -279,7 +277,7 @@ internal sealed class CaptureSubmissionsHandler(
 
         ReadOnlySpan<char> headline = (breakAt < 0 ? text : text[..breakAt]).Trim();
         ReadOnlySpan<char> remainder = breakAt < 0
-            ? ReadOnlySpan<char>.Empty
+            ? []
             : text[(breakAt + 1)..].Trim();
 
         // A one-line post still needs a body, because a submission cannot be

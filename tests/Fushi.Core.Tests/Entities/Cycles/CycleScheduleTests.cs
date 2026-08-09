@@ -111,10 +111,7 @@ public sealed class CycleScheduleTests
     [InlineData(DayOfWeek.Friday, CycleDays.Friday)]
     [InlineData(DayOfWeek.Saturday, CycleDays.Saturday)]
     [InlineData(DayOfWeek.Sunday, CycleDays.Sunday)]
-    public void FlagForMapsEachDayOntoItsOwnBit(DayOfWeek day, CycleDays expected)
-    {
-        CycleSchedule.FlagFor(day).ShouldBe(expected);
-    }
+    public void FlagForMapsEachDayOntoItsOwnBit(DayOfWeek day, CycleDays expected) => CycleSchedule.FlagFor(day).ShouldBe(expected);
 
     [Fact]
     public void WindowForReturnsNothingOnADayTheScheduleDoesNotRunOn()
@@ -399,16 +396,10 @@ public sealed class CycleScheduleTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public void ConstructionRejectsAnEmptyTimeZoneIdentifier(string timeZoneId)
-    {
-        _ = Should.Throw<ArgumentException>(() => new CycleSchedule(timeZoneId: timeZoneId));
-    }
+    public void ConstructionRejectsAnEmptyTimeZoneIdentifier(string timeZoneId) => _ = Should.Throw<ArgumentException>(() => new CycleSchedule(timeZoneId: timeZoneId));
 
     [Fact]
-    public void ConstructionRejectsANullTimeZoneIdentifier()
-    {
-        _ = Should.Throw<ArgumentNullException>(() => new CycleSchedule(timeZoneId: null!));
-    }
+    public void ConstructionRejectsANullTimeZoneIdentifier() => _ = Should.Throw<ArgumentNullException>(() => new CycleSchedule(timeZoneId: null!));
 
     // The documented cadence, constructed here rather than read from Default so
     // that these tests exercise the scheduling rules themselves and fail for one

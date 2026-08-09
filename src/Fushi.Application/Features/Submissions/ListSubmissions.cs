@@ -1,10 +1,9 @@
+using FluentValidation;
 using Fushi.Application.Abstractions.Messaging;
 using Fushi.Application.Abstractions.Persistence.Repositories;
 using Fushi.Core.Entities.Submissions;
 using Fushi.Core.Results;
 using Fushi.Core.Utilities.Paging;
-
-using FluentValidation;
 
 namespace Fushi.Application.Features.Submissions;
 
@@ -82,7 +81,7 @@ internal sealed class ListSubmissionsHandler(ISubmissionRepository submissions)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        PageRequest page = PageRequest.Clamp(request.PageNumber, request.PageSize);
+        var page = PageRequest.Clamp(request.PageNumber, request.PageSize);
 
         Page<Submission> found = await submissions.ListAsync(
             request.GuildId,

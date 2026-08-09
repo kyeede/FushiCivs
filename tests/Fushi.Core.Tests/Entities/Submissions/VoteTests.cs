@@ -65,7 +65,7 @@ public sealed class VoteTests
     [Fact]
     public void ACommentIsTrimmedAndABlankOneIsRecordedAsAbsent()
     {
-        Vote vote = Vote.Create(Guid.NewGuid(), 9uL, VoteChoice.Approve, Cast, "  Looks good.  ");
+        var vote = Vote.Create(Guid.NewGuid(), 9uL, VoteChoice.Approve, Cast, "  Looks good.  ");
 
         vote.Comment.ShouldBe("Looks good.");
 
@@ -92,16 +92,10 @@ public sealed class VoteTests
     [InlineData(VoteChoice.Approve, true)]
     [InlineData(VoteChoice.Reject, true)]
     [InlineData(VoteChoice.Abstain, false)]
-    public void OnlyApprovalsAndRejectionsCarryAJudgement(VoteChoice choice, bool expected)
-    {
-        New(choice).IsDeciding.ShouldBe(expected);
-    }
+    public void OnlyApprovalsAndRejectionsCarryAJudgement(VoteChoice choice, bool expected) => New(choice).IsDeciding.ShouldBe(expected);
 
     [Fact]
-    public void AVoteMentionsWhoeverCastIt()
-    {
-        New(VoteChoice.Approve).Mention.ShouldBe("<@9>");
-    }
+    public void AVoteMentionsWhoeverCastIt() => New(VoteChoice.Approve).Mention.ShouldBe("<@9>");
 
     [Fact]
     public void AVoteNeedsASubmissionAndARealVoter()

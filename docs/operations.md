@@ -2,6 +2,79 @@
 
 Running Fushi, watching it, and fixing it when it misbehaves.
 
+## Deploying to a VPS (Debian + Docker)
+
+The production path keeps **source off the server**. You build the image on your
+machine, ship only the image plus two small files, and Docker keeps the bot up
+across crashes and reboots (`restart: unless-stopped`).
+
+### What you need on the server
+
+- Debian with Docker working (`sudo docker run hello-world` succeeds).
+- The Compose plugin: `sudo docker compose version` (V2). If that fails, install
+  `docker-compose-plugin` from Docker's Debian packages — the older
+  `docker-compose` hyphen binary is not what these files target.
+- Outbound HTTPS to Discord. No inbound ports are required for the bot itself.
+
+### On your development machine
+
+```bash
+# From the repository root
+docker build -f build/Dockerfile -t fushi:1.0 .
+docker save fushi:1.0 | gzip > fushi-1.0.tar.gz
+
+scp fushi-1.0.tar.gz \
+    docker-compose.prod.yml \
+    .env.production.example \
+    aquila@YOUR_SERVER_IP:~/fushi/
+```
+
+Prefer an SSH key over password auth for that `scp`/`ssh` step. Password login on
+a public IP gets brute-forced continuously; keys do not change how the bot runs.
+
+### On the server
+
+```bash
+mkdir -p ~/fushi && cd ~/fushi
+gunzip -c fushi-1.0.tar.gz | sudo docker load
+
+cp .env.production.example .env
+nano .env   # set Discord__Token and POSTGRES_PASSWORD (openssl rand -base64 32)
+
+sudo docker compose -f docker-compose.prod.yml up -d --wait
+sudo docker compose -f docker-compose.prod.yml logs -f bot
+```
+
+You should see the gateway connect, then a registration pass creating the guild
+row. Slash commands registered globally can take up to about an hour to appear on
+first deploy; set `Discord__DevelopmentGuildId` to your test guild snowflake if
+you want them instantly while you verify.
+
+### Day-to-day
+
+```bash
+sudo docker compose -f docker-compose.prod.yml ps
+sudo docker compose -f docker-compose.prod.yml logs -f --tail=100 bot
+sudo docker compose -f docker-compose.prod.yml restart bot
+sudo docker compose -f docker-compose.prod.yml pull   # only if you use a registry
+```
+
+Updating to a new build is the same as the first ship: build and save locally,
+`scp` the new archive, `docker load`, then:
+
+```bash
+sudo docker compose -f docker-compose.prod.yml up -d
+```
+
+Compose recreates the bot container when the image tag changes. The Postgres
+volume is left alone.
+
+### What stays off the server
+
+The git tree, your Discord token in chat, and the development `.env`. The server
+holds: the loaded image, `docker-compose.prod.yml`, and a filled-in `.env` with
+mode `600` (`chmod 600 .env`).
+
 ## Running locally
 
 The compose stack starts PostgreSQL only by default. Redis and a database browser
@@ -194,6 +267,45 @@ All hot-path logging goes through source-generated `LoggerMessage` methods in
 `Fushi.Application/Logging`, so a disabled level costs a comparison and allocates
 nothing. Leaving `Debug` categories configured but disabled is free.
 
+## Guild registration
+
+Every other feature hangs off a guild's configuration row, so something has to
+create one. `GuildRegistrar` is a hosted service that asks Discord which guilds the
+bot is actually in and gives a row to any that lack one. The first pass runs as
+soon as the gateway reports ready; after that it runs on a timer.
+
+It is convergent for the same reason the scheduler is. Reacting only to the
+guild-join event would cover a server added while the bot happens to be running and
+miss every other case — one added during a restart, during an outage, or before the
+service existed would never be registered, and nothing would ever notice. Asking
+what the bot is in cannot develop that blind spot.
+
+Two properties are worth knowing:
+
+**It is additive.** A guild the bot has been removed from keeps its row. The only
+evidence of a departure is an absence from the list, and an absence is exactly what
+a reconnect manufactures for every guild at once. A stale row costs a row; acting on
+a false one would delete a server's channels, schedule, and voting grants, and
+nothing in Discord could restore them. Prune deliberately if you ever need to.
+
+**It refuses to guess.** When the gateway is between sessions the socket cache is
+empty, and `DiscordGuildDirectory` reports a failure rather than an empty list. The
+pass logs at warning and does nothing. This is nearly always a reconnect resolving
+itself, but a rejected token looks identical from here and does not resolve itself,
+which is why it is not logged silently.
+
+New rows are stamped with actor `0`, the system actor, because nobody asked for
+them. A pass that creates nothing — the normal case after the first — logs at debug,
+so the information level stays a record of guilds actually being taken on.
+
+| Setting | Default | Effect |
+| --- | --- | --- |
+| `Scheduler__RegistrationSeconds` | `300` | Seconds between passes |
+| `Scheduler__RegistrationEnabled` | `true` | Whether passes run at all |
+
+Five minutes is the longest of the three intervals on purpose: a pass costs one
+keyed lookup per guild and finds nothing to do on every run after the first.
+
 ## Reading the scheduler
 
 The scheduler is a hosted service that wakes periodically and, for each
@@ -308,6 +420,24 @@ docker compose exec bot ls /usr/share/zoneinfo/Europe/Berlin
 On Windows, note that `TimeZoneInfo` accepts IANA identifiers through ICU, so
 `Europe/Berlin` works there too — but only with globalization enabled. The same
 fault, the same fix.
+
+### `/config` replies "This server has not been set up yet"
+
+The guild has no configuration row. Since the reply names `/config channels` and
+that command reads before it writes, the advice is circular — the command it points
+at fails the same way.
+
+`GuildRegistrar` normally makes this unreachable by creating the row within seconds
+of the gateway connecting. Seeing it means one of:
+
+- The bot was added to the server less than one registration interval ago, and the
+  next pass has not run yet. Wait, or restart the bot to force a pass immediately.
+- `Scheduler__RegistrationEnabled` is `false`, so nothing creates rows in the
+  background. Any configuration command that writes will still create one.
+- The registration pass is failing. Look for event 4014 at warning level, which
+  carries the reason.
+- The database was wiped underneath a running process. The row is recreated on the
+  next pass, not on the next command.
 
 ### The bot starts but no slash command appears
 

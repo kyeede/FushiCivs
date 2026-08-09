@@ -16,7 +16,7 @@ public sealed class ShortCodeTests
     [Fact]
     public void GeneratedCodeRendersAsSixCharactersAndParsesBackToAnEqualValue()
     {
-        ShortCode code = ShortCode.New();
+        var code = ShortCode.New();
 
         string rendered = Render(code);
 
@@ -67,7 +67,7 @@ public sealed class ShortCodeTests
 
         for (int attempt = 0; attempt < SAMPLE_SIZE; attempt++)
         {
-            ShortCode code = ShortCode.New();
+            var code = ShortCode.New();
 
             code.ToUInt32().ShouldBeLessThan(ShortCode.CARDINALITY);
             _ = codes.Add(code);
@@ -88,26 +88,17 @@ public sealed class ShortCodeTests
     [InlineData("1I1L11", "111111")]
     [InlineData("O0OO00", "000000")]
     [InlineData("iiiiii", "111111")]
-    public void ParsingFoldsConfusableLettersOntoTheDigitsTheyResemble(string typed, string canonical)
-    {
-        Parse(typed).ShouldBe(Parse(canonical));
-    }
+    public void ParsingFoldsConfusableLettersOntoTheDigitsTheyResemble(string typed, string canonical) => Parse(typed).ShouldBe(Parse(canonical));
 
     [Fact]
-    public void ParsingIgnoresCase()
-    {
-        Parse("7k4m2p").ShouldBe(Parse("7K4M2P"));
-    }
+    public void ParsingIgnoresCase() => Parse("7k4m2p").ShouldBe(Parse("7K4M2P"));
 
     [Theory]
     [InlineData("7K4-M2P")]
     [InlineData("7K4_M2P")]
     [InlineData(" 7K4 M2P ")]
     [InlineData("7K4\tM2P")]
-    public void ParsingIgnoresSeparatorsAndWhiteSpace(string typed)
-    {
-        Parse(typed).ShouldBe(Parse("7K4M2P"));
-    }
+    public void ParsingIgnoresSeparatorsAndWhiteSpace(string typed) => Parse(typed).ShouldBe(Parse("7K4M2P"));
 
     [Fact]
     public void RenderingRoundTripsThroughParsingForEveryAlphabetSymbol()
@@ -160,16 +151,10 @@ public sealed class ShortCodeTests
     [InlineData("7K4M2")]
     [InlineData("7K4M2PQ")]
     [InlineData("7K4M2U")]
-    public void ParseThrowsOnTheInputTryParseRejects(string typed)
-    {
-        _ = Should.Throw<FormatException>(() => Parse(typed));
-    }
+    public void ParseThrowsOnTheInputTryParseRejects(string typed) => _ = Should.Throw<FormatException>(() => Parse(typed));
 
     [Fact]
-    public void ParseThrowsOnNull()
-    {
-        _ = Should.Throw<ArgumentNullException>(() => Parse(null!));
-    }
+    public void ParseThrowsOnNull() => _ = Should.Throw<ArgumentNullException>(() => Parse(null!));
 
     [Theory]
     [InlineData(0u)]
@@ -177,10 +162,7 @@ public sealed class ShortCodeTests
     [InlineData(31u)]
     [InlineData(1_000_000u)]
     [InlineData(ShortCode.CARDINALITY - 1u)]
-    public void NumericConversionRoundTrips(uint value)
-    {
-        ShortCode.FromUInt32(value).ToUInt32().ShouldBe(value);
-    }
+    public void NumericConversionRoundTrips(uint value) => ShortCode.FromUInt32(value).ToUInt32().ShouldBe(value);
 
     // Thirty bits is the whole code space, so anything above it is masked rather
     // than rejected: FromUInt32 reconstructs a stored value, it does not validate
@@ -189,10 +171,7 @@ public sealed class ShortCodeTests
     [InlineData(ShortCode.CARDINALITY, 0u)]
     [InlineData(ShortCode.CARDINALITY + 5u, 5u)]
     [InlineData(uint.MaxValue, ShortCode.CARDINALITY - 1u)]
-    public void NumericConversionMasksValuesAboveTheCodeSpace(uint value, uint expected)
-    {
-        ShortCode.FromUInt32(value).ToUInt32().ShouldBe(expected);
-    }
+    public void NumericConversionMasksValuesAboveTheCodeSpace(uint value, uint expected) => ShortCode.FromUInt32(value).ToUInt32().ShouldBe(expected);
 
     [Fact]
     public void TryFormatWritesIntoAnExactlySizedSpan()
@@ -267,10 +246,7 @@ public sealed class ShortCodeTests
     }
 
     [Fact]
-    public void ACodeIsNotEqualToAValueOfAnotherType()
-    {
-        Parse("7K4M2P").Equals("7K4M2P").ShouldBeFalse();
-    }
+    public void ACodeIsNotEqualToAValueOfAnotherType() => Parse("7K4M2P").Equals("7K4M2P").ShouldBeFalse();
 
     [Theory]
     [InlineData(0u, 1u)]
@@ -279,8 +255,8 @@ public sealed class ShortCodeTests
     [InlineData(ShortCode.CARDINALITY - 2u, ShortCode.CARDINALITY - 1u)]
     public void ComparisonOperatorsAgreeWithCompareTo(uint lower, uint higher)
     {
-        ShortCode low = ShortCode.FromUInt32(lower);
-        ShortCode high = ShortCode.FromUInt32(higher);
+        var low = ShortCode.FromUInt32(lower);
+        var high = ShortCode.FromUInt32(higher);
 
         low.CompareTo(high).ShouldBeLessThan(0);
         (low < high).ShouldBeTrue();
@@ -294,8 +270,8 @@ public sealed class ShortCodeTests
     [Fact]
     public void ComparisonOperatorsTreatEqualCodesAsNeitherLowerNorHigher()
     {
-        ShortCode left = ShortCode.FromUInt32(42u);
-        ShortCode right = ShortCode.FromUInt32(42u);
+        var left = ShortCode.FromUInt32(42u);
+        var right = ShortCode.FromUInt32(42u);
 
         (left < right).ShouldBeFalse();
         (left > right).ShouldBeFalse();

@@ -66,7 +66,7 @@ internal sealed class ShortCodeAllocator(FushiDbContext context) : IShortCodeAll
     {
         for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++)
         {
-            ShortCode candidate = ShortCode.New();
+            var candidate = ShortCode.New();
 
             if (!await isTaken(context, guildId, candidate, cancellationToken))
             {

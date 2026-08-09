@@ -33,9 +33,6 @@ public readonly record struct VotingPolicy
     /// </summary>
     public const int DEFAULT_QUORUM = 3;
 
-    private readonly double _approvalRatio;
-    private readonly int _quorum;
-
     /// <summary>
     /// Initialises the voting rules.
     /// </summary>
@@ -87,8 +84,8 @@ public readonly record struct VotingPolicy
         ArgumentOutOfRangeException.ThrowIfGreaterThan(approvalRatio, 1.0d);
         ArgumentOutOfRangeException.ThrowIfNegative(quorum);
 
-        _approvalRatio = approvalRatio;
-        _quorum = quorum;
+        ApprovalRatio = approvalRatio;
+        Quorum = quorum;
         AllowAbstain = allowAbstain;
         AllowSelfVote = allowSelfVote;
         AllowVoteChange = allowVoteChange;
@@ -105,7 +102,7 @@ public readonly record struct VotingPolicy
     /// <see cref="DEFAULT_APPROVAL_RATIO"/>. The constructor refuses zero, so that
     /// reading is unambiguous.
     /// </value>
-    public double ApprovalRatio => _approvalRatio is 0d ? DEFAULT_APPROVAL_RATIO : _approvalRatio;
+    public double ApprovalRatio => field is 0d ? DEFAULT_APPROVAL_RATIO : field;
 
     /// <summary>
     /// Gets the minimum number of deciding votes for a result to count.
@@ -114,7 +111,7 @@ public readonly record struct VotingPolicy
     /// A non-negative count. Zero means any number of votes, including none,
     /// produces a decision.
     /// </value>
-    public int Quorum => _quorum;
+    public int Quorum { get; }
 
     /// <summary>
     /// Gets a value indicating whether voters may abstain.

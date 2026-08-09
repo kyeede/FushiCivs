@@ -17,17 +17,14 @@ public sealed class PageInfoTests
     [InlineData(21, 10, 3)]
     [InlineData(7, 3, 3)]
     [InlineData(1, 1, 1)]
-    public void APartialLastPageStillCounts(int totalCount, int size, int expected)
-    {
-        new PageInfo(1, size, totalCount).TotalPages.ShouldBe(expected);
-    }
+    public void APartialLastPageStillCounts(int totalCount, int size, int expected) => new PageInfo(1, size, totalCount).TotalPages.ShouldBe(expected);
 
     // "Page 1 of 0" is not a thing anybody can read, so an empty sequence is still
     // one page — an empty one.
     [Fact]
     public void AnEmptySequenceIsOnePageRatherThanNone()
     {
-        PageInfo info = PageInfo.Empty();
+        var info = PageInfo.Empty();
 
         info.TotalCount.ShouldBe(0);
         info.TotalPages.ShouldBe(1);
@@ -87,10 +84,7 @@ public sealed class PageInfoTests
     [InlineData(1, 0, 0)]
     [InlineData(1, -1, 0)]
     [InlineData(1, 10, -1)]
-    public void ConstructionRejectsAPositionThatCannotExist(int number, int size, int totalCount)
-    {
-        _ = Should.Throw<ArgumentOutOfRangeException>(() => new PageInfo(number, size, totalCount));
-    }
+    public void ConstructionRejectsAPositionThatCannotExist(int number, int size, int totalCount) => _ = Should.Throw<ArgumentOutOfRangeException>(() => new PageInfo(number, size, totalCount));
 
     [Fact]
     public void TwoPositionsDescribingTheSamePageAreEqual()

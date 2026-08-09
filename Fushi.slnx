@@ -1,5 +1,4 @@
 <Solution>
-
   <Folder Name="/solution/">
     <File Path=".editorconfig" />
     <File Path=".gitattributes" />
@@ -39,8 +38,5 @@
 
   <Folder Name="/tests/">
     <Project Path="tests/Fushi.Core.Tests/Fushi.Core.Tests.csproj" />
-    <Project Path="tests/Fushi.Application.Tests/Fushi.Application.Tests.csproj" />
-    <Project Path="tests/Fushi.Infrastructure.Tests/Fushi.Infrastructure.Tests.csproj" />
   </Folder>
-
 </Solution>

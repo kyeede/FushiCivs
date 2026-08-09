@@ -97,15 +97,16 @@ public static class GatewayErrors
             + $"still there and that the bot has View Channel."));
 
     /// <summary>
-    /// The configured channel is not one messages can be read from.
+    /// The configured channel is not one applications can be collected from.
     /// </summary>
     /// <param name="channelId">The channel that was the wrong kind.</param>
     /// <returns>The failure.</returns>
-    public static Error ChannelNotText(ulong channelId) => Error.Validation(
-        "Discord.ChannelNotText",
+    public static Error ChannelNotReadable(ulong channelId) => Error.Validation(
+        "Discord.ChannelNotReadable",
         string.Create(
             CultureInfo.InvariantCulture,
-            $"<#{channelId}> is not a text channel, so applications cannot be collected from it. "
+            $"Applications cannot be collected from <#{channelId}>. Intake reads a text channel, "
+            + $"an announcement channel, a thread, or a forum, where each post is one application. "
             + $"Run /config channels to point intake somewhere else."));
 
     /// <summary>

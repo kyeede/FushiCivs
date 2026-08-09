@@ -19,7 +19,7 @@ namespace Fushi.Application.Features.Guilds;
 /// Sets the recurring schedule a guild's voting cycles run on.
 /// </summary>
 /// <remarks>
-/// As with <see cref="ConfigureChannels"/>, <see langword="null"/> means "leave
+/// As with <see cref="ConfigureVotingPolicy"/>, <see langword="null"/> means "leave
 /// this as it was", because Discord does not send slash command options the user
 /// left blank and treating absence as an instruction would reset the rest of the
 /// schedule on every partial edit.
