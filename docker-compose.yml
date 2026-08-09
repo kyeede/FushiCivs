@@ -52,7 +52,7 @@ services:
       - fushi
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     container_name: fushi-redis
     restart: unless-stopped
     # Optional. HybridCache runs with its in-memory L1 tier alone when
