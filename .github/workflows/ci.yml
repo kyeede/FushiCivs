@@ -69,17 +69,17 @@ jobs:
 
     steps:
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           # Reads the exact preview SDK band from global.json rather than
           # repeating the version here, where the two could drift apart.
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.NUGET_PACKAGES }}
           # Central Package Management means Directory.Packages.props is the
@@ -125,7 +125,7 @@ jobs:
         # explains why it failed. Without it the interesting case is the one
         # that uploads nothing.
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: artifacts/test-results/
@@ -134,7 +134,7 @@ jobs:
 
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           # Whatever the coverage collector produced, in whichever format it
