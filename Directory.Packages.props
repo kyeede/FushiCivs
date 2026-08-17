@@ -15,7 +15,7 @@
     interoperate, so these versions move together or not at all.
   -->
   <PropertyGroup Label="VersionBands">
-    <DotNetPreviewVersion>11.0.0-preview.6.26359.118</DotNetPreviewVersion>
+    <DotNetPreviewVersion>11.0.0-preview.7.26381.103</DotNetPreviewVersion>
     <NpgsqlVersion>11.0.0-preview.6</NpgsqlVersion>
     <DiscordNetVersion>3.20.1</DiscordNetVersion>
     <SerilogHostingVersion>10.0.0</SerilogHostingVersion>
