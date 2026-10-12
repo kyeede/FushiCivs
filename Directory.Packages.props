@@ -17,7 +17,7 @@
   <PropertyGroup Label="VersionBands">
     <DotNetPreviewVersion>11.0.0-preview.6.26359.118</DotNetPreviewVersion>
     <NpgsqlVersion>11.0.0-preview.6</NpgsqlVersion>
-    <DiscordNetVersion>3.20.1</DiscordNetVersion>
+    <DiscordNetVersion>3.20.2</DiscordNetVersion>
     <SerilogHostingVersion>10.0.0</SerilogHostingVersion>
     <!-- Extensions libraries that ship on the servicing cadence rather than the
          runtime cadence, and so have no 11.0 preview build. -->
